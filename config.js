@@ -1,161 +1,64 @@
 /**
- * ไฟล์ตั้งค่าระบบ
- * แก้ไขค่าในไฟล์นี้ตามต้องการ
+ * ไฟล์ตั้งค่าระบบค้นหาแปลงที่ดิน
  */
 
 const CONFIG = {
-    // Google Sheets URL สำหรับข้อมูลแปลงที่ดิน
+    // Google Sheets URL
     GOOGLE_SHEETS_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pub?output=csv',
     
-    // Google Drive Folder URL สำหรับรูปภาพ
-    GOOGLE_DRIVE_FOLDER_URL: 'https://drive.google.com/drive/folders/19uH9E6rwE0zpUIxHlAh4CFHflzNRAksG',
-    
-    // Google Drive Folder ID
+    // Google Drive Folder ID สำหรับรูปภาพ
     GOOGLE_DRIVE_FOLDER_ID: '19uH9E6rwE0zpUIxHlAh4CFHflzNRAksG',
     
-    // คอลัมน์ที่ใช้สำหรับค้นหาเลขแปลง
+    // คอลัมน์สำหรับแสดงข้อมูลบางส่วน (แสดงในหน้าแรก)
+    SUMMARY_COLUMNS: [
+        'พื้นที่', 'เจ้าของ', 'ที่ตั้ง', 'ตำบล', 'อำเภอ', 'จังหวัด',
+        'ราคา', 'สถานะ', 'ประเภท', 'การใช้ประโยชน์'
+    ],
+    
+    // คอลัมน์สำหรับค้นหาเลขแปลง
     PARCEL_COLUMNS: [
         'แปลง', 'เลขแปลง', 'หมายเลขแปลง', 'parcel', 'plot', 'lot',
-        'ที่ดิน', 'เลขที่', 'หมายเลข', 'no', 'number', 'รหัส', 'code'
+        'เลขที่ดิน', 'ที่ดินเลขที่', 'รหัสแปลง'
     ],
     
-    // คอลัมน์ที่อาจเป็นชื่อรูปภาพใน Google Drive
+    // คอลัมน์สำหรับรูปภาพ
     IMAGE_COLUMNS: [
         'รูปภาพ', 'ภาพ', 'รูป', 'image', 'photo', 'img',
-        'ไฟล์', 'file', 'ลิงก์', 'link', 'url', 'รูปถ่าย'
+        'ลิงก์รูป', 'ไฟล์รูป'
     ],
     
-    // รูปแบบชื่อไฟล์รูปภาพใน Google Drive (ใช้สำหรับจับคู่)
-    IMAGE_NAME_PATTERNS: [
-        '{parcel}', 'แปลง{parcel}', 'parcel{parcel}', 'plot{parcel}',
-        'ที่ดิน{parcel}', 'land{parcel}', '{parcel}_', '_{parcel}'
-    ],
+    // จำนวนแปลงแนะนำที่จะแสดง
+    FEATURED_COUNT: 6,
+    
+    // จำนวนค้นหาล่าสุดที่จะเก็บ
+    MAX_RECENT_SEARCHES: 10,
+    
+    // จำนวนแปลงที่เกี่ยวข้องที่จะแสดง
+    RELATED_PARCELS_COUNT: 4,
+    
+    // การตั้งค่า Google Drive API
+    DRIVE_API: {
+        FOLDER_VIEW_URL: 'https://drive.google.com/embeddedfolderview?id=',
+        FILE_URL_PREFIX: 'https://drive.google.com/uc?export=view&id=',
+        THUMBNAIL_URL: 'https://drive.google.com/thumbnail?id='
+    },
     
     // ชนิดไฟล์รูปภาพที่รองรับ
-    IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.JPG', '.JPEG', '.PNG'],
+    IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'],
     
-    // Google Drive API ตั้งค่า (ใช้สำหรับดึงรูปภาพ)
-    DRIVE_API: {
-        // ใช้ Google Drive Folder Viewer (public access)
-        FOLDER_VIEW_URL: 'https://drive.google.com/embeddedfolderview?id=',
-        
-        // ใช้สำหรับดึงไฟล์รูปภาพ
-        FILE_URL_PREFIX: 'https://drive.google.com/uc?export=view&id='
-    },
-    
-    // การตั้งค่าอื่นๆ
-    SETTINGS: {
-        ITEMS_PER_PAGE: 20,
-        AUTO_REFRESH_MINUTES: 30,
-        ENABLE_CACHE: true,
-        SHOW_IMAGE_THUMBNAILS: true,
-        MAX_IMAGES_PER_PARCEL: 20
-    },
-    
-    // ข้อมูลสำรองสำหรับแสดงผล
+    // ข้อมูลสำรองสำหรับรูปภาพ
     FALLBACK_IMAGES: [
-        'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800&h=600&fit=crop'
-    ],
-    
-    // สีธีม
-    COLORS: {
-        primary: '#2c3e50',
-        secondary: '#3498db',
-        success: '#2ecc71',
-        warning: '#f39c12',
-        danger: '#e74c3c'
-    }
+        'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&h=300&fit=crop',
+        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=300&fit=crop',
+        'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=400&h=300&fit=crop'
+    ]
 };
 
-// ฟังก์ชันสำหรับแปลงเลขแปลงเป็นรูปแบบต่างๆ สำหรับค้นหารูปภาพ
-function generateImageSearchPatterns(parcelNumber) {
-    const patterns = [];
-    const cleanParcel = parcelNumber.replace(/[^\d]/g, '');
-    
-    // สร้างรูปแบบต่างๆ สำหรับค้นหารูปภาพ
-    patterns.push(cleanParcel); // 123
-    patterns.push(`แปลง${cleanParcel}`); // แปลง123
-    patterns.push(`parcel${cleanParcel}`); // parcel123
-    patterns.push(`ที่ดิน${cleanParcel}`); // ที่ดิน123
-    patterns.push(`land${cleanParcel}`); // land123
-    
-    // ถ้า parcel number มีรูปแบบพิเศษ
-    if (parcelNumber.includes('-')) {
-        const parts = parcelNumber.split('-');
-        patterns.push(parts.join('')); // 123-45 -> 12345
-        patterns.push(`แปลง${parts.join('')}`);
-    }
-    
-    return patterns;
-}
-
-// ฟังก์ชันสำหรับสร้าง URL รูปภาพจาก Google Drive
-function getDriveImageUrl(fileId) {
-    return `${CONFIG.DRIVE_API.FILE_URL_PREFIX}${fileId}`;
-}
-
-// ฟังก์ชันสำหรับสร้าง thumbnail URL
-function getDriveThumbnailUrl(fileId, size = '200') {
-    return `${CONFIG.DRIVE_API.FILE_URL_PREFIX}${fileId}&sz=w${size}`;
-}
-
-// ฟังก์ชันสำหรับตรวจสอบว่าเป็น URL รูปภาพหรือไม่
-function isValidImageUrl(url) {
-    if (!url || typeof url !== 'string') return false;
-    
-    const trimmedUrl = url.trim();
-    if (trimmedUrl === '') return false;
-    
-    // ตรวจสอบว่าเป็น URL Google Drive หรือไม่
-    if (trimmedUrl.includes('drive.google.com')) {
-        return true;
-    }
-    
-    // ตรวจสอบนามสกุลไฟล์รูปภาพ
-    const imageExtensions = CONFIG.IMAGE_EXTENSIONS;
-    return imageExtensions.some(ext => trimmedUrl.toLowerCase().endsWith(ext));
-}
-
-// แปลง Google Drive sharing link เป็น direct link
-function convertDriveLink(shareLink) {
-    if (!shareLink || !shareLink.includes('drive.google.com')) {
-        return shareLink;
-    }
-    
-    // แปลงจาก share link เป็น direct link
-    const fileIdMatch = shareLink.match(/[-\w]{25,}/);
-    if (fileIdMatch) {
-        return getDriveImageUrl(fileIdMatch[0]);
-    }
-    
-    return shareLink;
-}
-
-// ตรวจสอบว่าคอลัมน์นี้เป็นคอลัมน์เลขแปลงหรือไม่
-function isParcelColumn(columnName) {
-    if (!columnName) return false;
-    const lowerName = columnName.toLowerCase();
-    return CONFIG.PARCEL_COLUMNS.some(keyword => 
-        lowerName.includes(keyword.toLowerCase())
-    );
-}
-
-// ตรวจสอบว่าคอลัมน์นี้เป็นคอลัมน์รูปภาพหรือไม่
-function isImageColumn(columnName) {
-    if (!columnName) return false;
-    const lowerName = columnName.toLowerCase();
-    return CONFIG.IMAGE_COLUMNS.some(keyword => 
-        lowerName.includes(keyword.toLowerCase())
-    );
-}
-
-// ดึงเลขแปลงจากแถวข้อมูล
-function extractParcelNumber(row) {
-    for (const columnPattern of CONFIG.PARCEL_COLUMNS) {
+// ฟังก์ชันสำหรับดึงเลขแปลงจากข้อมูล
+function getParcelNumber(row) {
+    for (const pattern of CONFIG.PARCEL_COLUMNS) {
         for (const [key, value] of Object.entries(row)) {
-            if (key.toLowerCase().includes(columnPattern.toLowerCase())) {
+            if (key.toLowerCase().includes(pattern.toLowerCase())) {
                 if (value && value.trim() !== '') {
                     return value.trim();
                 }
@@ -165,13 +68,71 @@ function extractParcelNumber(row) {
     return null;
 }
 
-// ส่งออกตัวแปรและฟังก์ชันให้ไฟล์อื่นใช้
+// ฟังก์ชันสำหรับดึงรูปภาพจาก Drive
+function getDriveImageUrl(fileId, size = null) {
+    if (size) {
+        return `${CONFIG.DRIVE_API.THUMBNAIL_URL}${fileId}&sz=w${size}`;
+    }
+    return `${CONFIG.DRIVE_API.FILE_URL_PREFIX}${fileId}`;
+}
+
+// ฟังก์ชันสำหรับสร้างรูปแบบการค้นหารูปภาพ
+function generateImagePatterns(parcelNumber) {
+    const patterns = [];
+    const cleanNumber = parcelNumber.replace(/[^\d]/g, '');
+    
+    // สร้างรูปแบบต่างๆ
+    patterns.push(cleanNumber);
+    patterns.push(`แปลง${cleanNumber}`);
+    patterns.push(`parcel${cleanNumber}`);
+    patterns.push(`plot${cleanNumber}`);
+    
+    if (parcelNumber.includes('-')) {
+        const parts = parcelNumber.split('-');
+        patterns.push(parts.join(''));
+        patterns.push(`แปลง${parts.join('')}`);
+    }
+    
+    return patterns;
+}
+
+// ฟังก์ชันตรวจสอบว่าเป็นคอลัมน์เลขแปลงหรือไม่
+function isParcelColumn(columnName) {
+    if (!columnName) return false;
+    const lowerName = columnName.toLowerCase();
+    return CONFIG.PARCEL_COLUMNS.some(pattern => 
+        lowerName.includes(pattern.toLowerCase())
+    );
+}
+
+// ฟังก์ชันตรวจสอบว่าเป็นคอลัมน์รูปภาพหรือไม่
+function isImageColumn(columnName) {
+    if (!columnName) return false;
+    const lowerName = columnName.toLowerCase();
+    return CONFIG.IMAGE_COLUMNS.some(pattern => 
+        lowerName.includes(pattern.toLowerCase())
+    );
+}
+
+// ฟังก์ชันดึงค่าจากคอลัมน์
+function getColumnValue(row, columnPatterns) {
+    for (const pattern of columnPatterns) {
+        for (const [key, value] of Object.entries(row)) {
+            if (key.toLowerCase().includes(pattern.toLowerCase())) {
+                if (value && value.trim() !== '') {
+                    return value;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+// ส่งออกตัวแปรและฟังก์ชัน
 window.CONFIG = CONFIG;
-window.generateImageSearchPatterns = generateImageSearchPatterns;
+window.getParcelNumber = getParcelNumber;
 window.getDriveImageUrl = getDriveImageUrl;
-window.getDriveThumbnailUrl = getDriveThumbnailUrl;
-window.isValidImageUrl = isValidImageUrl;
-window.convertDriveLink = convertDriveLink;
+window.generateImagePatterns = generateImagePatterns;
 window.isParcelColumn = isParcelColumn;
 window.isImageColumn = isImageColumn;
-window.extractParcelNumber = extractParcelNumber;
+window.getColumnValue = getColumnValue;
