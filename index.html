@@ -3,613 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ค้นหาแปลงที่ดิน | แสดงข้อมูลบางส่วน</title>
-    
-    <!-- Bootstrap 5 CSS -->
+    <title>ค้นหาข้อมูลแปลงที่ดิน</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
-    
     <style>
-        /* Hero Section */
-        .hero-section {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            padding: 60px 0;
-            margin-bottom: 40px;
-            border-radius: 0 0 20px 20px;
-        }
-        
-        .search-box {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .search-box .input-group {
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            border-radius: 50px;
-            overflow: hidden;
-        }
-        
-        .search-box input {
-            border: none;
-            padding: 20px 25px;
-            font-size: 1.1rem;
-        }
-        
-        .search-box button {
-            padding: 0 30px;
-            font-size: 1.1rem;
-            border: none;
-        }
-        
-        /* Parcel Summary Card */
-        .parcel-summary-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
-            transition: transform 0.3s ease;
-        }
-        
-        .parcel-summary-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .parcel-badge {
-            font-size: 1.2rem;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-        }
-        
-        .parcel-image {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        
-        /* Quick Search Buttons */
-        .quick-search {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .quick-search-btn {
-            padding: 8px 20px;
-            border-radius: 25px;
-            border: 2px solid #3498db;
-            background: white;
-            color: #3498db;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .quick-search-btn:hover {
-            background: #3498db;
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        /* Info Grid */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .info-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-        
-        .info-value {
-            font-size: 1.1rem;
-            color: #212529;
-            font-weight: 500;
-        }
-        
-        /* Recent Searches */
-        .recent-search {
-            display: inline-block;
-            background: #e9ecef;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .recent-search:hover {
-            background: #3498db;
-            color: white;
-        }
-        
-        /* Parcel Details Modal */
-        .parcel-details-modal .modal-dialog {
-            max-width: 900px;
-        }
-        
-        .image-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .image-thumbnail {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-        
-        .image-thumbnail:hover {
-            transform: scale(1.05);
-        }
-        
-        /* Related Parcels */
-        .related-parcel-card {
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .related-parcel-card:hover {
-            border-color: #3498db;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        /* Stats Cards */
-        .stat-card {
-            text-align: center;
+        body {
+            background-color: #f8f9fa;
             padding: 20px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 30px;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .search-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .result-box {
+            background-color: white;
+            padding: 25px;
             border-radius: 10px;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
+        .form-control {
+            height: 50px;
+            font-size: 18px;
         }
-        
-        .stat-number {
-            font-size: 2.2rem;
+        .btn-search {
+            background-color: #27ae60;
+            color: white;
+            height: 50px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .example-text {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .info-label {
             font-weight: bold;
             color: #2c3e50;
             margin-bottom: 5px;
         }
-        
-        .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
+        .info-value {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
         }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: 40px 0;
-            }
-            
-            .search-box input {
-                padding: 15px 20px;
-                font-size: 1rem;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .parcel-badge {
-                font-size: 1rem;
-            }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-tractor text-primary me-2"></i>
-                <span class="fw-bold">ค้นหาแปลงที่ดิน</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+    <div class="container">
+        <div class="header">
+            <h1>ค้นหาข้อมูลแปลงที่ดิน</h1>
+            <p class="mb-0">กรอกเลขแปลงเพื่อดูข้อมูลบางส่วน และค้นหาแปลงอื่นๆ เพิ่มเติมได้</p>
+        </div>
+        
+        <div class="search-box">
+            <div class="mb-3">
+                <label for="landNumber" class="form-label">เลขแปลงที่ดิน</label>
+                <input type="text" class="form-control" id="landNumber" placeholder="กรุณากรอกเลขแปลง" value="40001338E2">
+                <div class="example-text">✔ ตัวอย่างเลขแปลง: 40001338E2, 40001339E2, 40001340E2</div>
+            </div>
+            <button class="btn btn-search w-100" id="searchBtn">
+                ค้นหาข้อมูลแปลง
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showAllData()">
-                            <i class="fas fa-home me-1"></i>หน้าแรก
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showRecentSearches()">
-                            <i class="fas fa-history me-1"></i>ค้นหาล่าสุด
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showAbout()">
-                            <i class="fas fa-info-circle me-1"></i>เกี่ยวกับ
-                        </a>
-                    </li>
-                </ul>
-            </div>
         </div>
-    </nav>
 
-    <!-- Hero Section -->
-    <div class="hero-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
-                    <h1 class="display-5 fw-bold mb-3">
-                        ค้นหาแปลงที่ดินด้วยเลขแปลง
-                    </h1>
-                    <p class="lead mb-4">
-                        กรอกเลขแปลงเพื่อดูข้อมูลบางส่วน และค้นหาแปลงอื่นๆ เพิ่มเติมได้
-                    </p>
-                    
-                    <!-- Search Box -->
-                    <div class="search-box">
-                        <div class="input-group">
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                id="mainSearchInput" 
-                                placeholder="ป้อนเลขแปลงที่ดิน (เช่น 123, 45-67, 89A)..."
-                                autocomplete="off"
-                            >
-                            <button class="btn btn-primary" type="button" onclick="searchParcel()">
-                                <i class="fas fa-search me-2"></i>ค้นหาแปลง
-                            </button>
-                        </div>
-                        
-                        <!-- Quick Search Suggestions -->
-                        <div class="text-center mt-4">
-                            <p class="text-white-50 mb-2">
-                                <i class="fas fa-bolt me-1"></i>ตัวอย่างเลขแปลง:
-                            </p>
-                            <div class="quick-search justify-content-center" id="quickSearchSuggestions">
-                                <!-- Suggestions will be loaded here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="container py-4">
-        <!-- Loading State -->
-        <div class="text-center py-5" id="loadingState">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <div class="loading" id="loading">
+            <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">กำลังโหลด...</span>
             </div>
-            <p class="mt-3 text-muted">กำลังเตรียมข้อมูลสำหรับการค้นหา...</p>
+            <p class="mt-2">กำลังค้นหาข้อมูล...</p>
         </div>
 
-        <!-- Main Content (แสดงเมื่อโหลดเสร็จ) -->
-        <div id="mainContent" style="display: none;">
-            <!-- Statistics -->
-            <div class="row mb-5" id="statisticsSection">
-                <div class="col-12 mb-4">
-                    <h4 class="text-center mb-4">
-                        <i class="fas fa-chart-bar me-2 text-primary"></i>ข้อมูลแปลงที่ดินทั้งหมด
-                    </h4>
-                </div>
-                <div class="col-md-3 col-6 mb-3" id="statsTotalParcels">
-                    <div class="stat-card">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">แปลงทั้งหมด</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3" id="statsWithImages">
-                    <div class="stat-card">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">แปลงที่มีรูปภาพ</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3" id="statsTodaySearches">
-                    <div class="stat-card">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">ค้นหาวันนี้</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3" id="statsTotalImages">
-                    <div class="stat-card">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">รูปภาพทั้งหมด</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Search Results -->
-            <div id="searchResultsSection" style="display: none;">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h4>
-                                <i class="fas fa-search me-2 text-primary"></i>
-                                ผลการค้นหา: <span id="currentSearchTerm" class="text-primary"></span>
-                            </h4>
-                            <button class="btn btn-outline-secondary" onclick="showAllData()">
-                                <i class="fas fa-times me-1"></i>ล้างการค้นหา
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Single Parcel Result -->
-                <div id="singleParcelResult" style="display: none;">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="parcel-summary-card">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h4 class="mb-1">
-                                            <span class="parcel-badge bg-primary text-white">แปลง 
-                                                <span id="resultParcelNumber"></span>
-                                            </span>
-                                        </h4>
-                                        <p class="text-muted mb-0" id="resultParcelLocation">
-                                            <i class="fas fa-location-dot me-1"></i>กำลังโหลดตำแหน่ง...
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="viewParcelDetails()">
-                                            <i class="fas fa-eye me-1"></i>ดูรายละเอียด
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-success" onclick="searchAnother()">
-                                            <i class="fas fa-search me-1"></i>ค้นหาแปลงอื่น
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Main Image -->
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div id="resultMainImage" class="text-center">
-                                            <!-- Main image will be loaded here -->
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <!-- Quick Info -->
-                                        <div class="info-grid" id="resultQuickInfo">
-                                            <!-- Quick info will be loaded here -->
-                                        </div>
-                                        
-                                        <!-- Additional Actions -->
-                                        <div class="mt-4">
-                                            <button class="btn btn-primary me-2" onclick="viewParcelDetails()">
-                                                <i class="fas fa-expand me-1"></i>ดูข้อมูลทั้งหมด
-                                            </button>
-                                            <button class="btn btn-outline-primary" onclick="viewParcelImages()">
-                                                <i class="fas fa-images me-1"></i>ดูรูปภาพทั้งหมด
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Related Parcels -->
-                    <div class="row mt-4" id="relatedParcelsSection" style="display: none;">
-                        <div class="col-12">
-                            <h5 class="mb-3">
-                                <i class="fas fa-project-diagram me-2 text-success"></i>แปลงที่เกี่ยวข้อง
-                            </h5>
-                            <div class="row" id="relatedParcelsGrid">
-                                <!-- Related parcels will be loaded here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Multiple Results -->
-                <div id="multipleResults" style="display: none;">
-                    <div class="row">
-                        <div class="col-12">
-                            <p class="text-muted mb-3">
-                                พบ <span id="resultsCount" class="fw-bold">0</span> แปลงที่ตรงกับการค้นหา
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row" id="multipleResultsGrid">
-                        <!-- Multiple results will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Featured Parcels -->
-            <div id="featuredParcelsSection">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h4 class="mb-3">
-                            <i class="fas fa-star me-2 text-warning"></i>แปลงแนะนำ
-                        </h4>
-                        <p class="text-muted">
-                            แปลงที่มีข้อมูลครบถ้วนและมีรูปภาพประกอบ
-                        </p>
-                    </div>
-                </div>
-                <div class="row" id="featuredParcelsGrid">
-                    <!-- Featured parcels will be loaded here -->
-                </div>
-            </div>
-
-            <!-- Recent Searches -->
-            <div class="row mt-5" id="recentSearchesSection">
-                <div class="col-12">
-                    <h5 class="mb-3">
-                        <i class="fas fa-history me-2 text-info"></i>ค้นหาล่าสุด
-                    </h5>
-                    <div id="recentSearchesList">
-                        <!-- Recent searches will be loaded here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- No Data State -->
-        <div class="text-center py-5" id="noDataState" style="display: none;">
-            <i class="fas fa-database fa-4x text-muted mb-3"></i>
-            <h4 class="text-muted">ยังไม่มีข้อมูล</h4>
-            <p class="text-muted">ระบบกำลังโหลดข้อมูลจาก Google Sheets...</p>
-        </div>
-    </div>
-
-    <!-- Parcel Details Modal -->
-    <div class="modal fade parcel-details-modal" id="parcelDetailsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-map-marker-alt me-2"></i>
-                        ข้อมูลแปลง <span id="modalParcelNumber"></span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Main Image -->
-                    <div class="text-center mb-4">
-                        <img id="modalMainImage" class="img-fluid rounded" style="max-height: 300px;">
-                    </div>
-                    
-                    <!-- All Info -->
-                    <div class="info-grid mb-4" id="modalAllInfo">
-                        <!-- All information will be loaded here -->
-                    </div>
-                    
-                    <!-- Images Gallery -->
-                    <div id="modalImagesSection">
-                        <h6 class="mb-3">
-                            <i class="fas fa-images me-2 text-info"></i>รูปภาพทั้งหมด
-                        </h6>
-                        <div class="image-gallery" id="modalImagesGallery">
-                            <!-- Images will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
-                    <button type="button" class="btn btn-primary" onclick="searchAnotherFromModal()">
-                        <i class="fas fa-search me-1"></i>ค้นหาแปลงอื่น
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search Another Modal -->
-    <div class="modal fade" id="searchAnotherModal" tabindex="-1">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-search me-2"></i>ค้นหาแปลงอื่น
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <input 
-                            type="text" 
-                            class="form-control" 
-                            id="newSearchInput" 
-                            placeholder="ป้อนเลขแปลงใหม่..."
-                            autocomplete="off"
-                        >
-                        <button class="btn btn-primary" type="button" onclick="performNewSearch()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Quick Suggestions -->
-                    <div class="mt-3">
-                        <small class="text-muted d-block mb-2">แปลงที่เกี่ยวข้อง:</small>
-                        <div id="modalQuickSuggestions">
-                            <!-- Quick suggestions will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-5">
-        <div class="container">
+        <div class="result-box" id="resultBox">
+            <h3 class="mb-4">ข้อมูลแปลงที่ดิน</h3>
             <div class="row">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <h5>
-                        <i class="fas fa-tractor me-2 text-primary"></i>ระบบค้นหาแปลงที่ดิน
-                    </h5>
-                    <p class="mb-0 text-white-50">
-                        แสดงข้อมูลบางส่วนและค้นหาแปลงอื่นๆ เพิ่มเติมได้
-                    </p>
+                <div class="col-md-6">
+                    <div class="info-label">เลขแปลง</div>
+                    <div class="info-value" id="resultLandNumber">-</div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="mb-2">
-                        <small class="text-white-50">
-                            <i class="fas fa-database me-1"></i>
-                            ข้อมูล: <span id="footerTotalParcels">0</span> แปลง
-                        </small>
-                    </div>
-                    <div>
-                        <small class="text-white-50">
-                            <i class="fas fa-clock me-1"></i>
-                            อัปเดต: <span id="footerUpdateTime">-</span>
-                        </small>
-                    </div>
+                <div class="col-md-6">
+                    <div class="info-label">ประเภทที่ดิน</div>
+                    <div class="info-value" id="resultLandType">-</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-label">ตำบล/แขวง</div>
+                    <div class="info-value" id="resultSubdistrict">-</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-label">อำเภอ/เขต</div>
+                    <div class="info-value" id="resultDistrict">-</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-label">จังหวัด</div>
+                    <div class="info-value" id="resultProvince">-</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-label">พื้นที่ (ตร.ม.)</div>
+                    <div class="info-value" id="resultArea">-</div>
+                </div>
+                <div class="col-md-12">
+                    <div class="info-label">สถานะ</div>
+                    <div class="info-value" id="resultStatus">-</div>
                 </div>
             </div>
-            <hr class="my-3 opacity-25">
-            <div class="text-center">
-                <small class="text-white-50">
-                    © 2023 ระบบค้นหาแปลงที่ดิน | 
-                    <a href="#" class="text-white text-decoration-none" onclick="showAbout()">เกี่ยวกับระบบ</a>
-                </small>
+            <div class="mt-4">
+                <button class="btn btn-outline-primary" id="searchAnotherBtn">
+                    ค้นหาแปลงอื่น
+                </button>
             </div>
         </div>
-    </footer>
+    </div>
 
-    <!-- JavaScript Files -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="config.js"></script>
-    <script src="script.js"></script>
+    <script>
+        const sampleData = {
+            "40001338E2": {
+                landNumber: "40001338E2",
+                landType: "ที่ดินว่างเปล่า",
+                subdistrict: "คลองหนึ่ง",
+                district: "คลองหลวง",
+                province: "ปทุมธานี",
+                area: "320",
+                status: "พร้อมพัฒนา"
+            },
+            "40001339E2": {
+                landNumber: "40001339E2",
+                landType: "ที่อยู่อาศัย",
+                subdistrict: "คลองสอง",
+                district: "คลองหลวง",
+                province: "ปทุมธานี",
+                area: "400",
+                status: "มีผู้ครอบครอง"
+            },
+            "40001340E2": {
+                landNumber: "40001340E2",
+                landType: "ที่ดินเกษตร",
+                subdistrict: "คลองสาม",
+                district: "คลองหลวง",
+                province: "ปทุมธานี",
+                area: "1500",
+                status: "เช่าอยู่"
+            }
+        };
+
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            searchLandData();
+        });
+
+        document.getElementById('landNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchLandData();
+            }
+        });
+
+        document.getElementById('searchAnotherBtn').addEventListener('click', function() {
+            document.getElementById('landNumber').value = '';
+            document.getElementById('landNumber').focus();
+            document.getElementById('resultBox').style.display = 'none';
+        });
+
+        function searchLandData() {
+            const landNumber = document.getElementById('landNumber').value.trim();
+            
+            if (!landNumber) {
+                alert('กรุณากรอกเลขแปลงที่ดิน');
+                document.getElementById('landNumber').focus();
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (sampleData[landNumber]) {
+                    const data = sampleData[landNumber];
+                    
+                    document.getElementById('resultLandNumber').textContent = data.landNumber;
+                    document.getElementById('resultLandType').textContent = data.landType;
+                    document.getElementById('resultSubdistrict').textContent = data.subdistrict;
+                    document.getElementById('resultDistrict').textContent = data.district;
+                    document.getElementById('resultProvince').textContent = data.province;
+                    document.getElementById('resultArea').textContent = data.area + " ตร.ม.";
+                    document.getElementById('resultStatus').textContent = data.status;
+                    
+                    document.getElementById('resultBox').style.display = 'block';
+                    document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert('ไม่พบข้อมูลแปลงที่ดินหมายเลข: ' + landNumber);
+                    document.getElementById('landNumber').select();
+                }
+            }, 800);
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const initialLandNumber = document.getElementById('landNumber').value;
+            if (initialLandNumber) {
+                searchLandData();
+            }
+        });
+    </script>
 </body>
 </html>
