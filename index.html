@@ -3,282 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้อมูลจาก Google Sheets</title>
+    <title>ระบบแสดงข้อมูลแปลงที่ดินจาก Google Sheets</title>
+    
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3a0ca3;
-            --accent-color: #4cc9f0;
+        /* Additional inline styles */
+        .parcel-badge {
+            cursor: pointer;
+            transition: all 0.3s;
         }
         
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+        .parcel-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
-        .header-section {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem 0;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+        .highlight-row {
+            animation: highlight 2s ease;
         }
         
-        .data-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: none;
-            margin-bottom: 2rem;
-            overflow: hidden;
-            transition: transform 0.3s ease;
+        @keyframes highlight {
+            0% { background-color: #fff3cd; }
+            100% { background-color: transparent; }
         }
         
-        .data-card:hover {
-            transform: translateY(-5px);
+        .info-card {
+            border-left: 4px solid #0d6efd;
         }
         
-        .card-header-custom {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border-bottom: none;
-            padding: 1.2rem 1.5rem;
+        .success-card {
+            border-left: 4px solid #198754;
         }
         
-        .table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-            border-top: none;
-            padding: 1rem;
-        }
-        
-        .table td {
-            padding: 0.8rem 1rem;
-            vertical-align: middle;
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .badge-custom {
-            background: var(--accent-color);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: normal;
-        }
-        
-        .stat-card {
-            text-align: center;
-            padding: 1.5rem;
-            border-radius: 10px;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .btn-custom {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
-            color: white;
-        }
-        
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 3rem;
-        }
-        
-        .last-updated {
-            font-size: 0.9rem;
-            color: #777;
-        }
-        
-        .search-box {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        footer {
-            background: #333;
-            color: white;
-            padding: 2rem 0;
-            margin-top: 3rem;
-        }
-        
-        .filter-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 1rem;
-        }
-        
-        @media (max-width: 768px) {
-            .table-responsive {
-                font-size: 0.9rem;
-            }
-            
-            .header-section {
-                padding: 1.5rem 0;
-            }
-            
-            .stat-number {
-                font-size: 2rem;
-            }
+        .warning-card {
+            border-left: 4px solid #ffc107;
         }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <div class="header-section">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-map-marked-alt me-2"></i>ระบบข้อมูลแปลงที่ดิน
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showAllData()">
+                            <i class="fas fa-table me-1"></i>ดูข้อมูลทั้งหมด
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#stats">
+                            <i class="fas fa-chart-bar me-1"></i>สถิติ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="downloadCSV()">
+                            <i class="fas fa-download me-1"></i>ดาวน์โหลด
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Header -->
+    <div class="container-fluid bg-gradient py-4 mb-4">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1><i class="fas fa-table me-3"></i>ข้อมูลจาก Google Sheets</h1>
-                    <p class="mb-0">ข้อมูลถูกดึงมาจาก Google Sheets แบบเรียลไทม์</p>
+                    <h1 class="text-white mb-3">
+                        <i class="fas fa-tractor me-3"></i>ระบบจัดการข้อมูลแปลงที่ดิน
+                    </h1>
+                    <p class="text-white-50 mb-0">
+                        แสดงข้อมูลจาก Google Sheets แบบเรียลไทม์
+                    </p>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <span class="badge badge-custom">อัปเดตอัตโนมัติ</span>
+                    <div class="bg-white rounded p-3 shadow-sm">
+                        <small class="text-muted d-block">อัปเดตล่าสุด:</small>
+                        <strong id="lastUpdateTime">กำลังโหลด...</strong>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Main Content -->
     <div class="container">
-        <!-- Statistics Cards -->
-        <div class="row mb-4" id="statsSection">
-            <!-- จะถูกเติมข้อมูลโดย JavaScript -->
-        </div>
-        
-        <!-- Search and Filter -->
+        <!-- Search Section -->
         <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="input-group search-box">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="ค้นหาข้อมูล...">
+            <div class="col-12">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white py-3">
+                        <h4 class="mb-0">
+                            <i class="fas fa-search me-2 text-primary"></i>ค้นหาข้อมูลแปลงที่ดิน
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="fas fa-hashtag"></i>
+                                    </span>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-lg" 
+                                        id="parcelSearchInput" 
+                                        placeholder="ป้อนเลขแปลงที่ดิน (เช่น 123, 45-67, 89A)"
+                                        autocomplete="off"
+                                    >
+                                    <button class="btn btn-primary" type="button" onclick="searchParcel()">
+                                        <i class="fas fa-search me-1"></i>ค้นหาแปลง
+                                    </button>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>ค้นหาด้วยเลขแปลง, หมายเลขแปลง, หรือส่วนของหมายเลข
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-secondary text-white">
+                                        <i class="fas fa-filter"></i>
+                                    </span>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-lg" 
+                                        id="generalSearchInput" 
+                                        placeholder="ค้นหาทั่วไป (ชื่อ, เจ้าของ, พื้นที่...)"
+                                        autocomplete="off"
+                                    >
+                                    <button class="btn btn-secondary" type="button" onclick="searchGeneral()">
+                                        <i class="fas fa-filter me-1"></i>ค้นหา
+                                    </button>
+                                </div>
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>ค้นหาจากข้อมูลทั้งหมดในระบบ
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Search Buttons -->
+                        <div class="mt-3">
+                            <h6 class="mb-2">
+                                <i class="fas fa-bolt me-2"></i>ค้นหาแปลงยอดนิยม:
+                            </h6>
+                            <div class="d-flex flex-wrap gap-2" id="popularParcels">
+                                <!-- จะถูกเติมโดย JavaScript -->
+                                <span class="badge bg-light text-dark p-2">กำลังโหลด...</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6 text-end">
-                <button class="btn btn-custom" onclick="refreshData()">
-                    <i class="fas fa-sync-alt me-2"></i>รีเฟรชข้อมูล
-                </button>
-            </div>
         </div>
-        
-        <!-- Filter Buttons -->
-        <div class="filter-buttons" id="filterButtons">
-            <!-- จะถูกเติมข้อมูลโดย JavaScript -->
-        </div>
-        
-        <!-- Loading Indicator -->
-        <div class="loading-spinner" id="loadingSpinner">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="visually-hidden">กำลังโหลด...</span>
-            </div>
-            <p class="mt-3">กำลังโหลดข้อมูลจาก Google Sheets...</p>
-        </div>
-        
-        <!-- Data Table -->
-        <div class="data-card">
-            <div class="card-header card-header-custom">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"><i class="fas fa-database me-2"></i>ข้อมูลทั้งหมด</h4>
-                    <span class="badge bg-light text-dark" id="rowCount">0 รายการ</span>
+
+        <!-- Parcel Details Card (จะแสดงเมื่อค้นหาแปลง) -->
+        <div class="row mb-4" id="parcelDetailsSection" style="display: none;">
+            <div class="col-12">
+                <div class="card shadow border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-map me-2"></i>ข้อมูลแปลงที่ดิน 
+                            <span id="currentParcelNumber" class="badge bg-light text-dark ms-2 fs-6"></span>
+                        </h4>
+                        <button class="btn btn-light btn-sm" onclick="closeParcelDetails()">
+                            <i class="fas fa-times"></i> ปิด
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Parcel Summary -->
+                        <div class="row mb-4" id="parcelSummary">
+                            <!-- สรุปข้อมูลจะแสดงที่นี่ -->
+                        </div>
+                        
+                        <!-- Parcel Details Table -->
+                        <div class="table-responsive">
+                            <h5 class="mb-3">
+                                <i class="fas fa-list-alt me-2"></i>รายการทั้งหมดในแปลงนี้
+                                <span class="badge bg-info ms-2" id="parcelItemsCount">0 รายการ</span>
+                            </h5>
+                            <table class="table table-hover table-striped" id="parcelDetailsTable">
+                                <thead id="parcelTableHeader">
+                                    <!-- Headers จะถูกเติมโดย JavaScript -->
+                                </thead>
+                                <tbody id="parcelTableBody">
+                                    <!-- ข้อมูลจะแสดงที่นี่ -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Related Parcels -->
+                        <div class="mt-4" id="relatedParcelsSection" style="display: none;">
+                            <h5 class="mb-3">
+                                <i class="fas fa-project-diagram me-2"></i>แปลงที่เกี่ยวข้อง
+                            </h5>
+                            <div id="relatedParcels" class="d-flex flex-wrap gap-2">
+                                <!-- แปลงที่เกี่ยวข้องจะแสดงที่นี่ -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="dataTable">
-                        <thead>
-                            <tr id="tableHeader">
-                                <!-- Headers จะถูกเติมโดย JavaScript -->
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Data จะถูกเติมโดย JavaScript -->
-                        </tbody>
-                    </table>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="row mb-4" id="stats">
+            <div class="col-12">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-chart-pie me-2 text-success"></i>สถิติข้อมูล
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3" id="statisticsCards">
+                            <!-- สถิติจะแสดงที่นี่ -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- No Data Message -->
-        <div class="text-center d-none" id="noDataMessage">
-            <div class="py-5">
-                <i class="fas fa-database fa-4x text-muted mb-3"></i>
-                <h4 class="text-muted">ไม่พบข้อมูล</h4>
-                <p>ตรวจสอบการเชื่อมต่อหรือลองรีเฟรชหน้าเว็บ</p>
+
+        <!-- All Data Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-database me-2 text-info"></i>ข้อมูลทั้งหมด
+                        </h4>
+                        <div>
+                            <span class="badge bg-info me-2" id="totalRecords">0 รายการ</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="toggleFilters()">
+                                <i class="fas fa-sliders-h me-1"></i>ตัวกรอง
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters (ซ่อนไว้เริ่มต้น) -->
+                    <div class="card-body bg-light border-bottom" id="filterSection" style="display: none;">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">คอลัมน์:</label>
+                                <select class="form-select" id="filterColumn">
+                                    <option value="">เลือกคอลัมน์...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">ค่า:</label>
+                                <input type="text" class="form-control" id="filterValue" placeholder="ป้อนค่าที่ต้องการกรอง">
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-primary me-2" onclick="applyFilter()">
+                                    <i class="fas fa-check me-1"></i>ใช้ตัวกรอง
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times me-1"></i>ล้างตัวกรอง
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Data Table -->
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="mainDataTable">
+                                <thead class="table-light">
+                                    <tr id="mainTableHeader">
+                                        <!-- Headers จะถูกเติมโดย JavaScript -->
+                                    </tr>
+                                </thead>
+                                <tbody id="mainTableBody">
+                                    <!-- ข้อมูลจะแสดงที่นี่ -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div class="text-center py-5" id="emptyState" style="display: none;">
+                            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">ไม่พบข้อมูล</h4>
+                            <p class="text-muted">ลองค้นหาด้วยคำอื่นหรือตรวจสอบการเชื่อมต่อ</p>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div class="text-center py-5" id="loadingState">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">กำลังโหลด...</span>
+                            </div>
+                            <p class="mt-3 text-muted">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="card-footer bg-white" id="paginationSection" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                แสดง <span id="startRecord">0</span> ถึง <span id="endRecord">0</span> จากทั้งหมด 
+                                <span id="totalFilteredRecords">0</span> รายการ
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="prevPage()" id="prevBtn" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="mx-2">หน้า <span id="currentPage">1</span></span>
+                                <button class="btn btn-sm btn-outline-primary ms-1" onclick="nextPage()" id="nextBtn" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <!-- Last Updated -->
-        <div class="text-center mt-3">
-            <p class="last-updated">
-                <i class="fas fa-clock me-2"></i>อัปเดตล่าสุด: <span id="lastUpdated">-</span>
-            </p>
-        </div>
-        
-        <!-- JSON Data Viewer (Optional) -->
-        <div class="data-card">
-            <div class="card-header card-header-custom d-flex justify-content-between align-items-center" 
-                 data-bs-toggle="collapse" href="#jsonViewer" role="button">
-                <h5 class="mb-0"><i class="fas fa-code me-2"></i>ดูข้อมูล JSON</h5>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="collapse" id="jsonViewer">
-                <div class="card-body">
-                    <pre id="jsonOutput" class="bg-light p-3 rounded" style="font-size: 0.8rem; max-height: 300px; overflow: auto;"></pre>
+
+        <!-- Data Source Info -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <div class="d-flex">
+                        <i class="fas fa-info-circle fa-2x me-3 mt-1"></i>
+                        <div>
+                            <h6 class="alert-heading mb-2">
+                                <i class="fab fa-google-drive me-2"></i>แหล่งข้อมูล: Google Sheets
+                            </h6>
+                            <p class="mb-1">
+                                ข้อมูลถูกดึงมาจาก Google Sheets แบบเรียลไทม์
+                                <button class="btn btn-sm btn-outline-info ms-2" onclick="refreshData()">
+                                    <i class="fas fa-sync-alt me-1"></i>อัปเดตข้อมูลตอนนี้
+                                </button>
+                            </p>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                ข้อมูลจะรีเฟรชอัตโนมัติทุก 10 นาที
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Footer -->
-    <footer>
+    <footer class="bg-dark text-white py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Google Sheets to HTML</h5>
-                    <p>แสดงข้อมูลจาก Google Sheets บนเว็บไซต์ผ่าน GitHub Pages</p>
+                    <h5>
+                        <i class="fas fa-map-marked-alt me-2"></i>ระบบข้อมูลแปลงที่ดิน
+                    </h5>
+                    <p class="mb-0">แสดงข้อมูลจาก Google Sheets บนเว็บไซต์ผ่าน GitHub Pages</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>สร้างด้วย HTML, JavaScript และ Bootstrap 5</p>
-                    <p>ข้อมูลถูกดึงมาจาก: <br>
-                        <small>https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml</small>
+                    <p>
+                        <i class="fas fa-code me-2"></i>สร้างด้วย HTML, JavaScript, Bootstrap 5
                     </p>
+                    <div class="mt-2">
+                        <a href="#" class="btn btn-sm btn-outline-light me-2" onclick="exportToJSON()">
+                            <i class="fas fa-file-code me-1"></i>Export JSON
+                        </a>
+                        <a href="#" class="btn btn-sm btn-outline-light" onclick="showRawData()">
+                            <i class="fas fa-eye me-1"></i>ดู Raw Data
+                        </a>
+                    </div>
                 </div>
+            </div>
+            <hr class="bg-light my-3">
+            <div class="text-center">
+                <small>
+                    © 2023 ระบบจัดการข้อมูลแปลงที่ดิน | 
+                    อัปเดตล่าสุด: <span id="footerUpdateTime">-</span>
+                </small>
             </div>
         </div>
     </footer>
-    
-    <!-- JavaScript -->
+
+    <!-- Modals -->
+    <div class="modal fade" id="rawDataModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-code me-2"></i>Raw Data จาก Google Sheets
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="rawDataContent" class="bg-light p-3 rounded" style="max-height: 500px; overflow: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
