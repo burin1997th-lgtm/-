@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แสดงข้อมูลจาก Google Sheets</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-table me-2"></i>ข้อมูลจาก Google Sheets
+        </h1>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            ข้อมูลถูกดึงมาจาก Google Sheets แบบเรียลไทม์
+        </div>
+        
+        <!-- ฟอร์มสำหรับใส่ Google Sheets URL -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cog me-2"></i>ตั้งค่า Google Sheets
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="sheetUrl" class="form-label">Google Sheets URL (เป็น CSV):</label>
+                    <input type="text" class="form-control" id="sheetUrl" 
+                           placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv">
+                </div>
+                <div class="mb-3">
+                    <label for="sheetId" class="form-label">หรือ Sheet ID:</label>
+                    <input type="text" class="form-control" id="sheetId" 
+                           placeholder="1XyZ...">
+                </div>
+                <button class="btn btn-primary" onclick="loadData()">
+                    <i class="fas fa-sync me-2"></i>โหลดข้อมูล
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div id="loading" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">กำลังโหลด...</span>
+            </div>
+            <p class="mt-2">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+        </div>
+        
+        <!-- ตารางแสดงผล -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="dataTable">
+                <thead id="tableHeader">
+                    <tr>
+                        <th>#</th>
+                        <!-- Headers จะถูกเพิ่มโดย JavaScript -->
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- ข้อมูลจะถูกเพิ่มโดย JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4 text-center text-muted">
+            <p>อัปเดตล่าสุด: <span id="updateTime">-</span></p>
+            <button class="btn btn-outline-secondary btn-sm" onclick="refreshData()">
+                <i class="fas fa-redo me-1"></i>รีเฟรชข้อมูล
+            </button>
+        </div>
+    </div>
+    
+    <footer class="mt-5 py-3 bg-light text-center">
+        <div class="container">
+            <p>สร้างด้วย HTML, JavaScript และ GitHub Pages | 
+                <a href="https://github.com/yourusername/your-repo" target="_blank">
+                    <i class="fab fa-github me-1"></i>ดูโค้ดบน GitHub
+                </a>
+            </p>
+        </div>
+    </footer>
+    
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
