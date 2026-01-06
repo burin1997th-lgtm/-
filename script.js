@@ -1,87 +1,120 @@
-// Google Sheets URL ของคุณ
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pub?output=csv';
+/**
+ * ระบบจัดการข้อมูลแปลงที่ดินจาก Google Sheets
+ * สคริปต์หลักสำหรับดึงข้อมูลและจัดการการแสดงผล
+ */
 
-// ตัวแปรเก็บข้อมูล
-let allData = [];
-let currentData = [];
-let allHeaders = [];
+// ==================== คอนฟิกเริ่มต้น ====================
+const CONFIG = {
+    // Google Sheets URL (จากที่คุณให้มา)
+    SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pub?output=csv',
+    
+    // การตั้งค่า Pagination
+    ITEMS_PER_PAGE: 20,
+    
+    // การตั้งค่า Auto-refresh (นาที)
+    AUTO_REFRESH_INTERVAL: 10,
+    
+    // คอลัมน์ที่อาจเป็นเลขแปลง (ใช้สำหรับตรวจสอบอัตโนมัติ)
+    POSSIBLE_PARCEL_COLUMNS: [
+        'แปลง', 'เลขแปลง', 'หมายเลขแปลง', 'แปลงที่ดิน', 'parcel', 'plot',
+        'ที่ดินแปลง', 'เลขที่ดิน', 'หมายเลขที่ดิน', 'lot', 'ที่ดิน'
+    ]
+};
 
-// ฟังก์ชันหลักโหลดข้อมูล
+// ==================== ตัวแปร Global ====================
+let allData = [];                // ข้อมูลทั้งหมด
+let filteredData = [];           // ข้อมูลที่ถูกกรองแล้ว
+let currentPage = 1;            // หน้าปัจจุบัน
+let headers = [];               // หัวคอลัมน์ทั้งหมด
+let currentParcelData = null;   // ข้อมูลแปลงปัจจุบันที่กำลังดู
+
+// ==================== ฟังก์ชันหลัก ====================
+
+/**
+ * โหลดข้อมูลจาก Google Sheets
+ */
 async function loadData() {
     showLoading(true);
     
     try {
-        // ดึงข้อมูลจาก Google Sheets
-        const response = await fetch(SHEET_URL);
+        console.log('กำลังโหลดข้อมูลจาก:', CONFIG.SHEET_URL);
+        
+        // ดึงข้อมูล CSV
+        const response = await fetch(CONFIG.SHEET_URL);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP Error: ${response.status}`);
         }
         
         const csvText = await response.text();
         
-        // ตรวจสอบว่าได้ข้อมูลมาหรือไม่
         if (!csvText || csvText.trim() === '') {
             throw new Error('ไม่พบข้อมูลใน Google Sheets');
         }
         
-        // แปลง CSV เป็น JSON
-        const jsonData = parseCSVToJSON(csvText);
+        console.log('ได้ข้อมูล CSV ขนาด:', csvText.length, 'ตัวอักษร');
         
-        if (jsonData.length === 0) {
+        // แปลง CSV เป็น JSON
+        allData = parseCSV(csvText);
+        
+        if (allData.length === 0) {
             throw new Error('ข้อมูลว่างเปล่า');
         }
         
-        // เก็บข้อมูล
-        allData = jsonData;
-        currentData = [...jsonData];
+        // ดึง headers
+        headers = Object.keys(allData[0]);
+        
+        console.log('โหลดข้อมูลสำเร็จ:', allData.length, 'แถว,', headers.length, 'คอลัมน์');
         
         // แสดงข้อมูล
-        displayData(jsonData);
-        updateStatistics(jsonData);
-        createFilterButtons(jsonData);
-        updateJSONViewer(jsonData);
-        
-        // อัปเดตเวลาล่าสุด
+        displayAllData();
+        updateStatistics();
+        updatePopularParcels();
         updateLastUpdated();
         
         showLoading(false);
         
     } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('เกิดข้อผิดพลาด:', error);
         showError(error.message);
         showLoading(false);
     }
 }
 
-// ฟังก์ชันแปลง CSV เป็น JSON
-function parseCSVToJSON(csv) {
-    const lines = csv.split('\n').filter(line => line.trim() !== '');
+/**
+ * แปลง CSV เป็น JSON
+ */
+function parseCSV(csvText) {
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
     
     if (lines.length < 2) return [];
     
-    // ดึง headers
+    // แยก headers (บรรทัดแรก)
     const headers = parseCSVLine(lines[0]);
-    allHeaders = headers;
     
     // สร้าง array ของ objects
-    const jsonData = [];
+    const data = [];
     
     for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         const row = {};
         
+        // กำหนดค่าให้แต่ละคอลัมน์
         for (let j = 0; j < headers.length; j++) {
-            row[headers[j]] = values[j] || '';
+            const header = headers[j].trim();
+            const value = values[j] ? values[j].trim() : '';
+            row[header] = value;
         }
         
-        jsonData.push(row);
+        data.push(row);
     }
     
-    return jsonData;
+    return data;
 }
 
-// ฟังก์ชันแยกค่า CSV (รองรับค่าที่มี comma ภายใน)
+/**
+ * แยกค่าจาก CSV line (รองรับค่าที่มี comma ภายใน)
+ */
 function parseCSVLine(line) {
     const result = [];
     let current = '';
@@ -93,66 +126,300 @@ function parseCSVLine(line) {
         if (char === '"') {
             inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
+            result.push(current);
             current = '';
         } else {
             current += char;
         }
     }
     
-    result.push(current.trim());
+    result.push(current);
     return result;
 }
 
-// ฟังก์ชันแสดงข้อมูลในตาราง
-function displayData(data) {
-    const tableHeader = document.getElementById('tableHeader');
-    const tableBody = document.getElementById('tableBody');
-    const noDataMessage = document.getElementById('noDataMessage');
-    const rowCountElement = document.getElementById('rowCount');
+/**
+ * แสดงข้อมูลทั้งหมดในตารางหลัก
+ */
+function displayAllData() {
+    filteredData = [...allData];
+    currentPage = 1;
     
-    // อัปเดตจำนวนแถว
-    rowCountElement.textContent = `${data.length} รายการ`;
+    displayTable(filteredData);
+    setupPagination(filteredData.length);
+    updateStatistics();
+    populateFilterColumns();
+    
+    // ซ่อนรายละเอียดแปลงถ้าอยู่ในโหมดแสดง
+    closeParcelDetails();
+}
+
+/**
+ * แสดงข้อมูลในตาราง
+ */
+function displayTable(data) {
+    const tableBody = document.getElementById('mainTableBody');
+    const tableHeader = document.getElementById('mainTableHeader');
+    const emptyState = document.getElementById('emptyState');
     
     // ตรวจสอบว่ามีข้อมูลหรือไม่
     if (data.length === 0) {
-        tableHeader.innerHTML = '';
         tableBody.innerHTML = '';
-        document.getElementById('dataTable').classList.add('d-none');
-        noDataMessage.classList.remove('d-none');
+        emptyState.style.display = 'block';
+        document.getElementById('paginationSection').style.display = 'none';
+        document.getElementById('mainDataTable').style.display = 'none';
         return;
     }
     
     // แสดงตาราง
-    document.getElementById('dataTable').classList.remove('d-none');
-    noDataMessage.classList.add('d-none');
+    emptyState.style.display = 'none';
+    document.getElementById('paginationSection').style.display = 'block';
+    document.getElementById('mainDataTable').style.display = 'table';
     
-    // ดึง headers
-    const headers = Object.keys(data[0]);
-    
-    // สร้าง header row
+    // สร้าง header
+    const headerKeys = Object.keys(data[0]);
     let headerHTML = '<tr>';
     headerHTML += '<th>#</th>';
     
-    headers.forEach(header => {
+    headerKeys.forEach(header => {
+        headerHTML += `<th>${header}</th>`;
+    });
+    
+    headerHTML += '<th>จัดการ</th>';
+    headerHTML += '</tr>';
+    
+    tableHeader.innerHTML = headerHTML;
+    
+    // คำนวณขอบเขตข้อมูลที่จะแสดง (pagination)
+    const startIndex = (currentPage - 1) * CONFIG.ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + CONFIG.ITEMS_PER_PAGE, data.length);
+    const pageData = data.slice(startIndex, endIndex);
+    
+    // สร้างแถวข้อมูล
+    let bodyHTML = '';
+    
+    pageData.forEach((row, index) => {
+        const rowIndex = startIndex + index + 1;
+        bodyHTML += '<tr>';
+        bodyHTML += `<td>${rowIndex}</td>`;
+        
+        headerKeys.forEach(header => {
+            const value = row[header] || '';
+            
+            // ตรวจสอบว่าเป็นเลขแปลงหรือไม่
+            if (isParcelColumn(header) && isParcelNumber(value)) {
+                bodyHTML += `<td>
+                    <span class="badge bg-primary parcel-badge me-2" 
+                          onclick="showParcelData('${value}')" 
+                          title="คลิกเพื่อดูข้อมูลแปลง">
+                        ${value}
+                    </span>
+                </td>`;
+            } else if (value.startsWith('http')) {
+                bodyHTML += `<td>
+                    <a href="${value}" target="_blank" class="text-primary text-decoration-none">
+                        <i class="fas fa-external-link-alt me-1"></i>ลิงก์
+                    </a>
+                </td>`;
+            } else {
+                bodyHTML += `<td>${value}</td>`;
+            }
+        });
+        
+        // ปุ่มจัดการ
+        bodyHTML += `<td>
+            <button class="btn btn-sm btn-outline-primary me-1" 
+                    onclick="showRowDetails(${rowIndex - 1})"
+                    title="ดูรายละเอียด">
+                <i class="fas fa-eye"></i>
+            </button>
+        </td>`;
+        
+        bodyHTML += '</tr>';
+    });
+    
+    tableBody.innerHTML = bodyHTML;
+    
+    // อัปเดต pagination
+    updatePaginationControls(data.length);
+}
+
+// ==================== ฟังก์ชันค้นหาแปลง ====================
+
+/**
+ * ค้นหาแปลงที่ดิน
+ */
+function searchParcel() {
+    const input = document.getElementById('parcelSearchInput');
+    const parcelNumber = input.value.trim();
+    
+    if (!parcelNumber) {
+        alert('กรุณาป้อนเลขแปลงที่ต้องการค้นหา');
+        return;
+    }
+    
+    showParcelData(parcelNumber);
+}
+
+/**
+ * แสดงข้อมูลแปลง
+ */
+function showParcelData(parcelNumber) {
+    // ค้นหาข้อมูลทั้งหมดที่เกี่ยวข้องกับเลขแปลงนี้
+    const parcelRecords = findParcelRecords(parcelNumber);
+    
+    if (parcelRecords.length === 0) {
+        alert(`ไม่พบข้อมูลสำหรับแปลงหมายเลข: ${parcelNumber}`);
+        return;
+    }
+    
+    currentParcelData = {
+        parcelNumber: parcelNumber,
+        records: parcelRecords,
+        totalRecords: parcelRecords.length
+    };
+    
+    displayParcelDetails(parcelNumber, parcelRecords);
+}
+
+/**
+ * ค้นหาข้อมูลที่เกี่ยวข้องกับเลขแปลง
+ */
+function findParcelRecords(parcelNumber) {
+    return allData.filter(row => {
+        // ค้นหาในทุกคอลัมน์
+        return Object.values(row).some(value => {
+            if (!value || typeof value !== 'string') return false;
+            
+            // แยกค่าออกเป็นส่วนๆ (รองรับรูปแบบเช่น "123-45")
+            const valueParts = value.split(/[,\s-]+/);
+            
+            // ตรวจสอบแต่ละส่วน
+            return valueParts.some(part => {
+                const cleanPart = part.replace(/[^\d]/g, '');
+                const cleanParcel = parcelNumber.replace(/[^\d]/g, '');
+                
+                // ตรวจสอบว่าเป็นเลขเดียวกันหรือมีส่วนที่ตรงกัน
+                return cleanPart.includes(cleanParcel) || cleanParcel.includes(cleanPart);
+            });
+        });
+    });
+}
+
+/**
+ * แสดงรายละเอียดแปลง
+ */
+function displayParcelDetails(parcelNumber, records) {
+    // แสดง section
+    const section = document.getElementById('parcelDetailsSection');
+    section.style.display = 'block';
+    
+    // อัปเดตหัวข้อ
+    document.getElementById('currentParcelNumber').textContent = parcelNumber;
+    
+    // แสดงสรุป
+    displayParcelSummary(parcelNumber, records);
+    
+    // แสดงตารางรายละเอียด
+    displayParcelTable(records);
+    
+    // แสดงแปลงที่เกี่ยวข้อง
+    showRelatedParcels(parcelNumber, records);
+    
+    // เลื่อนไปที่ส่วนนี้
+    section.scrollIntoView({ behavior: 'smooth' });
+    
+    // ไฮไลท์แถวในตารางหลัก
+    highlightParcelRows(parcelNumber);
+}
+
+/**
+ * แสดงสรุปข้อมูลแปลง
+ */
+function displayParcelSummary(parcelNumber, records) {
+    const summaryDiv = document.getElementById('parcelSummary');
+    
+    // วิเคราะห์ข้อมูล
+    const analysis = analyzeParcelData(records);
+    
+    let summaryHTML = `
+        <div class="col-md-3 mb-3">
+            <div class="stat-card info-card">
+                <div class="stat-number">${records.length}</div>
+                <div class="stat-label">จำนวนรายการ</div>
+            </div>
+        </div>
+    `;
+    
+    // เพิ่มการ์ดสำหรับคอลัมน์สำคัญ
+    const importantColumns = headers.filter(header => 
+        !CONFIG.POSSIBLE_PARCEL_COLUMNS.some(p => 
+            header.toLowerCase().includes(p.toLowerCase())
+        )
+    ).slice(0, 3);
+    
+    importantColumns.forEach(column => {
+        const values = records.map(r => r[column]).filter(v => v && v.trim() !== '');
+        const uniqueValues = [...new Set(values)];
+        
+        summaryHTML += `
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <div class="stat-number">${uniqueValues.length}</div>
+                    <div class="stat-label">${column}</div>
+                    ${uniqueValues.length > 0 ? `
+                        <small class="text-muted mt-2 d-block">
+                            ${uniqueValues.slice(0, 2).join(', ')}
+                            ${uniqueValues.length > 2 ? '...' : ''}
+                        </small>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    summaryDiv.innerHTML = `<div class="row">${summaryHTML}</div>`;
+}
+
+/**
+ * แสดงตารางรายละเอียดแปลง
+ */
+function displayParcelTable(records) {
+    const tableHeader = document.getElementById('parcelTableHeader');
+    const tableBody = document.getElementById('parcelTableBody');
+    
+    // อัปเดตจำนวน
+    document.getElementById('parcelItemsCount').textContent = records.length;
+    
+    // สร้าง header
+    const headerKeys = headers;
+    let headerHTML = '<tr><th>#</th>';
+    
+    headerKeys.forEach(header => {
         headerHTML += `<th>${header}</th>`;
     });
     
     headerHTML += '</tr>';
     tableHeader.innerHTML = headerHTML;
     
-    // สร้าง data rows
+    // สร้างแถวข้อมูล
     let bodyHTML = '';
     
-    data.forEach((row, index) => {
+    records.forEach((row, index) => {
         bodyHTML += '<tr>';
         bodyHTML += `<td>${index + 1}</td>`;
         
-        headers.forEach(header => {
+        headerKeys.forEach(header => {
             const value = row[header] || '';
-            // ตรวจสอบว่าเป็น URL หรือไม่
-            if (value.startsWith('http')) {
-                bodyHTML += `<td><a href="${value}" target="_blank">${value}</a></td>`;
+            
+            // ไฮไลท์ข้อมูลที่เป็นเลขแปลง
+            if (isParcelColumn(header) && isParcelNumber(value)) {
+                bodyHTML += `<td class="bg-warning bg-opacity-25 fw-bold">${value}</td>`;
+            } else if (value.startsWith('http')) {
+                bodyHTML += `<td>
+                    <a href="${value}" target="_blank" class="text-primary">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </td>`;
             } else {
                 bodyHTML += `<td>${value}</td>`;
             }
@@ -164,160 +431,308 @@ function displayData(data) {
     tableBody.innerHTML = bodyHTML;
 }
 
-// ฟังก์ชันอัปเดตสถิติ
-function updateStatistics(data) {
-    const statsSection = document.getElementById('statsSection');
+/**
+ * แสดงแปลงที่เกี่ยวข้อง
+ */
+function showRelatedParcels(mainParcel, records) {
+    const relatedParcels = findRelatedParcels(mainParcel, records);
     
-    if (data.length === 0) {
-        statsSection.innerHTML = '';
+    if (relatedParcels.length === 0) {
+        document.getElementById('relatedParcelsSection').style.display = 'none';
         return;
     }
     
-    const headers = Object.keys(data[0]);
-    let statsHTML = '';
+    const container = document.getElementById('relatedParcels');
+    let html = '';
     
-    // สถิติ 1: จำนวนรายการทั้งหมด
-    statsHTML += `
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-number">${data.length}</div>
-                <div class="stat-label">รายการทั้งหมด</div>
-            </div>
-        </div>
-    `;
-    
-    // สถิติ 2: จำนวนคอลัมน์
-    statsHTML += `
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-number">${headers.length}</div>
-                <div class="stat-label">จำนวนคอลัมน์</div>
-            </div>
-        </div>
-    `;
-    
-    // สถิติ 3: ตัวอย่างข้อมูลจากคอลัมน์แรก
-    if (headers.length > 0) {
-        const firstColumn = headers[0];
-        const uniqueValues = [...new Set(data.map(row => row[firstColumn]))];
-        
-        statsHTML += `
-            <div class="col-md-3 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number">${uniqueValues.length}</div>
-                    <div class="stat-label">${firstColumn} ที่ไม่ซ้ำ</div>
-                </div>
-            </div>
+    relatedParcels.forEach(parcel => {
+        html += `
+            <span class="badge bg-secondary p-2 cursor-pointer"
+                  onclick="showParcelData('${parcel}')">
+                <i class="fas fa-map-marker-alt me-1"></i>แปลง ${parcel}
+            </span>
         `;
-    }
+    });
     
-    // สถิติ 4: อัปเดตล่าสุด
-    statsHTML += `
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-number"><i class="fas fa-check-circle text-success"></i></div>
-                <div class="stat-label">เชื่อมต่อสำเร็จ</div>
-            </div>
-        </div>
-    `;
-    
-    statsSection.innerHTML = statsHTML;
+    container.innerHTML = html;
+    document.getElementById('relatedParcelsSection').style.display = 'block';
 }
 
-// ฟังก์ชันสร้างปุ่มกรองข้อมูล
-function createFilterButtons(data) {
-    const filterButtons = document.getElementById('filterButtons');
+/**
+ * หาแปลงที่เกี่ยวข้อง
+ */
+function findRelatedParcels(mainParcel, records) {
+    const related = new Set();
     
-    if (data.length === 0 || allHeaders.length === 0) {
-        filterButtons.innerHTML = '';
+    // ดูจากข้อมูลอื่นๆ ในแถวเดียวกัน
+    records.forEach(record => {
+        Object.entries(record).forEach(([key, value]) => {
+            if (isParcelColumn(key) && isParcelNumber(value) && value !== mainParcel) {
+                related.add(value);
+            }
+        });
+    });
+    
+    return Array.from(related).slice(0, 10); // จำกัดที่ 10 แปลง
+}
+
+// ==================== ฟังก์ชันค้นหาทั่วไป ====================
+
+/**
+ * ค้นหาทั่วไป
+ */
+function searchGeneral() {
+    const input = document.getElementById('generalSearchInput');
+    const searchTerm = input.value.trim().toLowerCase();
+    
+    if (!searchTerm) {
+        displayAllData();
         return;
     }
     
-    let buttonsHTML = '<button class="btn btn-outline-primary btn-sm" onclick="resetFilter()">ทั้งหมด</button>';
+    // กรองข้อมูล
+    filteredData = allData.filter(row => {
+        return Object.values(row).some(value => {
+            if (!value) return false;
+            return value.toString().toLowerCase().includes(searchTerm);
+        });
+    });
     
-    // สร้างปุ่มกรองสำหรับแต่ละคอลัมน์
-    allHeaders.forEach(header => {
-        // ดึงค่าที่ไม่ซ้ำกัน (จำกัดที่ 10 ค่าแรก)
-        const uniqueValues = [...new Set(data.map(row => row[header]))]
-            .filter(value => value && value.trim() !== '')
-            .slice(0, 10);
-        
-        if (uniqueValues.length > 0) {
-            buttonsHTML += `
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
-                            data-bs-toggle="dropdown">
-                        ${header}
-                    </button>
-                    <ul class="dropdown-menu">
-                        ${uniqueValues.map(value => 
-                            `<li><a class="dropdown-item" href="#" onclick="filterData('${header}', '${value.replace(/'/g, "\\'")}')">${value}</a></li>`
-                        ).join('')}
-                    </ul>
-                </div>
-            `;
+    currentPage = 1;
+    displayTable(filteredData);
+    setupPagination(filteredData.length);
+}
+
+// ==================== ฟังก์ชันตัวกรอง ====================
+
+/**
+ * แสดง/ซ่อนตัวกรอง
+ */
+function toggleFilters() {
+    const section = document.getElementById('filterSection');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+/**
+ * เติมคอลัมน์ให้ตัวกรอง
+ */
+function populateFilterColumns() {
+    const select = document.getElementById('filterColumn');
+    select.innerHTML = '<option value="">เลือกคอลัมน์...</option>';
+    
+    headers.forEach(header => {
+        select.innerHTML += `<option value="${header}">${header}</option>`;
+    });
+}
+
+/**
+ * ใช้ตัวกรอง
+ */
+function applyFilter() {
+    const column = document.getElementById('filterColumn').value;
+    const value = document.getElementById('filterValue').value.trim();
+    
+    if (!column) {
+        alert('กรุณาเลือกคอลัมน์ที่ต้องการกรอง');
+        return;
+    }
+    
+    if (!value) {
+        clearFilters();
+        return;
+    }
+    
+    filteredData = allData.filter(row => {
+        const cellValue = row[column] || '';
+        return cellValue.toString().toLowerCase().includes(value.toLowerCase());
+    });
+    
+    currentPage = 1;
+    displayTable(filteredData);
+    setupPagination(filteredData.length);
+}
+
+/**
+ * ล้างตัวกรอง
+ */
+function clearFilters() {
+    document.getElementById('filterColumn').value = '';
+    document.getElementById('filterValue').value = '';
+    displayAllData();
+}
+
+// ==================== ฟังก์ชัน Pagination ====================
+
+/**
+ * ตั้งค่า Pagination
+ */
+function setupPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / CONFIG.ITEMS_PER_PAGE);
+    
+    document.getElementById('totalFilteredRecords').textContent = totalItems;
+    document.getElementById('currentPage').textContent = currentPage;
+    
+    // อัพเดตปุ่ม
+    document.getElementById('prevBtn').disabled = currentPage <= 1;
+    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+    
+    // อัพเดตแสดงผล
+    const start = (currentPage - 1) * CONFIG.ITEMS_PER_PAGE + 1;
+    const end = Math.min(currentPage * CONFIG.ITEMS_PER_PAGE, totalItems);
+    
+    document.getElementById('startRecord').textContent = start;
+    document.getElementById('endRecord').textContent = end;
+}
+
+/**
+ * หน้าถัดไป
+ */
+function nextPage() {
+    const totalPages = Math.ceil(filteredData.length / CONFIG.ITEMS_PER_PAGE);
+    
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayTable(filteredData);
+        setupPagination(filteredData.length);
+    }
+}
+
+/**
+ * หน้าก่อนหน้า
+ */
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayTable(filteredData);
+        setupPagination(filteredData.length);
+    }
+}
+
+/**
+ * อัพเดตปุ่ม Pagination
+ */
+function updatePaginationControls(totalItems) {
+    const totalPages = Math.ceil(totalItems / CONFIG.ITEMS_PER_PAGE);
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
+    
+    document.getElementById('startRecord').textContent = 
+        Math.min((currentPage - 1) * CONFIG.ITEMS_PER_PAGE + 1, totalItems);
+    document.getElementById('endRecord').textContent = 
+        Math.min(currentPage * CONFIG.ITEMS_PER_PAGE, totalItems);
+    document.getElementById('totalFilteredRecords').textContent = totalItems;
+    document.getElementById('currentPage').textContent = currentPage;
+}
+
+// ==================== ฟังก์ชันอัพเดต UI ====================
+
+/**
+ * อัพเดตสถิติ
+ */
+function updateStatistics() {
+    const container = document.getElementById('statisticsCards');
+    
+    const totalRecords = allData.length;
+    const totalColumns = headers.length;
+    
+    // หาจำนวนแปลงที่ต่างกัน
+    const parcelNumbers = new Set();
+    allData.forEach(row => {
+        headers.forEach(header => {
+            if (isParcelColumn(header) && isParcelNumber(row[header])) {
+                parcelNumbers.add(row[header]);
+            }
+        });
+    });
+    
+    // หาคอลัมน์ที่มีข้อมูลมากที่สุด
+    let mostFilledColumn = '';
+    let mostFilledCount = 0;
+    
+    headers.forEach(header => {
+        const filledCount = allData.filter(row => row[header] && row[header].trim() !== '').length;
+        if (filledCount > mostFilledCount) {
+            mostFilledCount = filledCount;
+            mostFilledColumn = header;
         }
     });
     
-    filterButtons.innerHTML = buttonsHTML;
+    container.innerHTML = `
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-number">${totalRecords}</div>
+                <div class="stat-label">รายการทั้งหมด</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-number">${parcelNumbers.size}</div>
+                <div class="stat-label">แปลงที่ดิน</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-number">${totalColumns}</div>
+                <div class="stat-label">คอลัมน์ข้อมูล</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-number">${Math.round((mostFilledCount / totalRecords) * 100)}%</div>
+                <div class="stat-label">${mostFilledColumn}</div>
+            </div>
+        </div>
+    `;
 }
 
-// ฟังก์ชันกรองข้อมูล
-function filterData(column, value) {
-    const filteredData = allData.filter(row => 
-        row[column] && row[column].toString().includes(value)
-    );
+/**
+ * อัพเดตแปลงยอดนิยม
+ */
+function updatePopularParcels() {
+    const container = document.getElementById('popularParcels');
     
-    currentData = filteredData;
-    displayData(filteredData);
-    updateStatistics(filteredData);
+    // หาเลขแปลงที่พบบ่อย
+    const parcelCounts = {};
     
-    // อัปเดตปุ่มกรอง
-    const buttons = document.querySelectorAll('#filterButtons button');
-    buttons.forEach(btn => btn.classList.remove('active'));
-}
-
-// ฟังก์ชันรีเซ็ตการกรอง
-function resetFilter() {
-    currentData = [...allData];
-    displayData(allData);
-    updateStatistics(allData);
-    
-    // อัปเดตปุ่มกรอง
-    const buttons = document.querySelectorAll('#filterButtons button');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    buttons[0].classList.add('active');
-}
-
-// ฟังก์ชันค้นหาข้อมูล
-function searchData() {
-    const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    
-    if (searchTerm === '') {
-        currentData = [...allData];
-    } else {
-        currentData = allData.filter(row => {
-            return Object.values(row).some(value => 
-                value && value.toString().toLowerCase().includes(searchTerm)
-            );
+    allData.forEach(row => {
+        headers.forEach(header => {
+            if (isParcelColumn(header)) {
+                const value = row[header];
+                if (isParcelNumber(value)) {
+                    parcelCounts[value] = (parcelCounts[value] || 0) + 1;
+                }
+            }
         });
-    }
+    });
     
-    displayData(currentData);
-    updateStatistics(currentData);
+    // เรียงลำดับและเลือก 8 อันดับแรก
+    const popularParcels = Object.entries(parcelCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([parcel]) => parcel);
+    
+    let html = '';
+    popularParcels.forEach(parcel => {
+        html += `
+            <span class="badge bg-light text-dark p-2 cursor-pointer"
+                  onclick="showParcelData('${parcel}')">
+                <i class="fas fa-hashtag me-1"></i>${parcel}
+            </span>
+        `;
+    });
+    
+    container.innerHTML = html || '<span class="text-muted">ไม่พบข้อมูลแปลง</span>';
 }
 
-// ฟังก์ชันแสดง JSON Data
-function updateJSONViewer(data) {
-    const jsonOutput = document.getElementById('jsonOutput');
-    jsonOutput.textContent = JSON.stringify(data, null, 2);
-}
-
-// ฟังก์ชันอัปเดตเวลาล่าสุด
+/**
+ * อัพเดตเวลาล่าสุด
+ */
 function updateLastUpdated() {
     const now = new Date();
-    const formattedDate = now.toLocaleString('th-TH', {
+    const timeString = now.toLocaleString('th-TH', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -326,91 +741,252 @@ function updateLastUpdated() {
         second: '2-digit'
     });
     
-    document.getElementById('lastUpdated').textContent = formattedDate;
+    document.getElementById('lastUpdateTime').textContent = timeString;
+    document.getElementById('footerUpdateTime').textContent = timeString;
 }
 
-// ฟังก์ชันรีเฟรชข้อมูล
-function refreshData() {
-    loadData();
+// ==================== ฟังก์ชัน Utility ====================
+
+/**
+ * ตรวจสอบว่าคอลัมน์นี้เป็นคอลัมน์เลขแปลงหรือไม่
+ */
+function isParcelColumn(columnName) {
+    const lowerName = columnName.toLowerCase();
+    return CONFIG.POSSIBLE_PARCEL_COLUMNS.some(keyword => 
+        lowerName.includes(keyword.toLowerCase())
+    );
 }
 
-// ฟังก์ชันแสดง Loading
+/**
+ * ตรวจสอบว่าค่านี้เป็นเลขแปลงหรือไม่
+ */
+function isParcelNumber(value) {
+    if (!value || typeof value !== 'string') return false;
+    
+    // ตรวจสอบว่ามีตัวเลขหรือไม่ (อย่างน้อย 1 ตัว)
+    return /\d/.test(value);
+}
+
+/**
+ * วิเคราะห์ข้อมูลแปลง
+ */
+function analyzeParcelData(records) {
+    const analysis = {
+        totalRecords: records.length,
+        columns: {}
+    };
+    
+    headers.forEach(header => {
+        const values = records.map(r => r[header]).filter(v => v && v.trim() !== '');
+        analysis.columns[header] = {
+            filled: values.length,
+            unique: [...new Set(values)].length,
+            sample: values.slice(0, 3)
+        };
+    });
+    
+    return analysis;
+}
+
+/**
+ * ไฮไลท์แถวในตารางหลัก
+ */
+function highlightParcelRows(parcelNumber) {
+    const rows = document.querySelectorAll('#mainTableBody tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        let shouldHighlight = false;
+        
+        cells.forEach(cell => {
+            if (cell.textContent.includes(parcelNumber)) {
+                shouldHighlight = true;
+            }
+        });
+        
+        if (shouldHighlight) {
+            row.classList.add('highlight');
+            setTimeout(() => row.classList.remove('highlight'), 1500);
+        }
+    });
+}
+
+/**
+ * แสดงรายละเอียดแถว
+ */
+function showRowDetails(rowIndex) {
+    const row = allData[rowIndex];
+    let details = 'รายละเอียดข้อมูล:\n\n';
+    
+    Object.entries(row).forEach(([key, value]) => {
+        details += `${key}: ${value || '(ว่าง)'}\n`;
+    });
+    
+    alert(details);
+}
+
+/**
+ * ปิดรายละเอียดแปลง
+ */
+function closeParcelDetails() {
+    document.getElementById('parcelDetailsSection').style.display = 'none';
+    currentParcelData = null;
+}
+
+/**
+ * แสดงข้อมูลทั้งหมด (รีเซ็ต)
+ */
+function showAllData() {
+    closeParcelDetails();
+    displayAllData();
+}
+
+/**
+ * แสดงสถานะ loading
+ */
 function showLoading(show) {
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const dataTable = document.getElementById('dataTable');
-    const noDataMessage = document.getElementById('noDataMessage');
-    
-    if (show) {
-        loadingSpinner.style.display = 'block';
-        dataTable.classList.add('d-none');
-        noDataMessage.classList.add('d-none');
-    } else {
-        loadingSpinner.style.display = 'none';
-    }
+    const loadingState = document.getElementById('loadingState');
+    loadingState.style.display = show ? 'block' : 'none';
 }
 
-// ฟังก์ชันแสดงข้อผิดพลาด
+/**
+ * แสดงข้อผิดพลาด
+ */
 function showError(message) {
-    const tableBody = document.getElementById('tableBody');
-    const noDataMessage = document.getElementById('noDataMessage');
-    
-    tableBody.innerHTML = '';
-    noDataMessage.classList.remove('d-none');
-    noDataMessage.innerHTML = `
-        <div class="py-5">
-            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
-            <h4 class="text-danger">เกิดข้อผิดพลาด</h4>
-            <p>${message}</p>
-            <button class="btn btn-custom mt-2" onclick="refreshData()">
-                <i class="fas fa-redo me-2"></i>ลองอีกครั้ง
-            </button>
-        </div>
+    const emptyState = document.getElementById('emptyState');
+    emptyState.innerHTML = `
+        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+        <h4 class="text-danger">เกิดข้อผิดพลาด</h4>
+        <p class="text-muted">${message}</p>
+        <button class="btn btn-primary mt-3" onclick="loadData()">
+            <i class="fas fa-redo me-1"></i>ลองอีกครั้ง
+        </button>
     `;
+    emptyState.style.display = 'block';
 }
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // โหลดข้อมูลครั้งแรก
-    loadData();
-    
-    // ตั้งค่าค้นหาข้อมูลเมื่อพิมพ์
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('keyup', searchData);
-    
-    // รีเฟรชข้อมูลทุก 5 นาที
-    setInterval(refreshData, 5 * 60 * 1000);
-});
+// ==================== ฟังก์ชัน Export ====================
 
-// ฟังก์ชันดาวน์โหลดข้อมูลเป็น CSV
+/**
+ * ดาวน์โหลด CSV
+ */
 function downloadCSV() {
-    if (allData.length === 0) return;
+    if (allData.length === 0) {
+        alert('ไม่มีข้อมูลให้ดาวน์โหลด');
+        return;
+    }
     
-    const headers = allHeaders;
-    const csvRows = [];
+    // สร้าง CSV
+    let csvContent = headers.join(',') + '\n';
     
-    // เพิ่ม header
-    csvRows.push(headers.join(','));
-    
-    // เพิ่มข้อมูล
     allData.forEach(row => {
-        const values = headers.map(header => {
+        const rowValues = headers.map(header => {
             const value = row[header] || '';
             // Escape quotes and commas
             return `"${value.toString().replace(/"/g, '""')}"`;
         });
-        csvRows.push(values.join(','));
+        csvContent += rowValues.join(',') + '\n';
     });
     
-    // สร้างไฟล์ CSV
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    // สร้าง Blob และดาวน์โหลด
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
     
-    a.href = url;
-    a.download = 'google-sheets-data.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    link.href = url;
+    link.download = `parcel-data-${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
 }
+
+/**
+ * Export เป็น JSON
+ */
+function exportToJSON() {
+    if (allData.length === 0) {
+        alert('ไม่มีข้อมูลให้ export');
+        return;
+    }
+    
+    const jsonString = JSON.stringify(allData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.href = url;
+    link.download = `parcel-data-${new Date().toISOString().slice(0,10)}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * แสดง Raw Data
+ */
+function showRawData() {
+    const modal = new bootstrap.Modal(document.getElementById('rawDataModal'));
+    const content = document.getElementById('rawDataContent');
+    
+    content.textContent = JSON.stringify(allData, null, 2);
+    modal.show();
+}
+
+/**
+ * รีเฟรชข้อมูล
+ */
+function refreshData() {
+    loadData();
+}
+
+// ==================== การเริ่มต้นระบบ ====================
+
+// เมื่อหน้าเว็บโหลดเสร็จ
+document.addEventListener('DOMContentLoaded', function() {
+    // โหลดข้อมูล
+    loadData();
+    
+    // ตั้งค่า Auto-refresh
+    setInterval(refreshData, CONFIG.AUTO_REFRESH_INTERVAL * 60 * 1000);
+    
+    // ตั้งค่า Event Listeners
+    document.getElementById('parcelSearchInput').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            searchParcel();
+        }
+    });
+    
+    document.getElementById('generalSearchInput').addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            searchGeneral();
+        }
+    });
+    
+    // ตรวจสอบ URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const parcelParam = urlParams.get('parcel');
+    
+    if (parcelParam) {
+        setTimeout(() => {
+            document.getElementById('parcelSearchInput').value = parcelParam;
+            showParcelData(parcelParam);
+        }, 1000);
+    }
+});
+
+// เปิดเผยฟังก์ชันสำคัญให้เรียกจาก HTML ได้
+window.searchParcel = searchParcel;
+window.searchGeneral = searchGeneral;
+window.showParcelData = showParcelData;
+window.closeParcelDetails = closeParcelDetails;
+window.showAllData = showAllData;
+window.refreshData = refreshData;
+window.nextPage = nextPage;
+window.prevPage = prevPage;
+window.toggleFilters = toggleFilters;
+window.applyFilter = applyFilter;
+window.clearFilters = clearFilters;
+window.downloadCSV = downloadCSV;
+window.exportToJSON = exportToJSON;
+window.showRawData = showRawData;
+window.showRowDetails = showRowDetails;
