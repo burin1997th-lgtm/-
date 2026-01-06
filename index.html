@@ -3,227 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ค้นหาข้อมูลแปลงที่ดิน</title>
+    <title>แสดงข้อมูลจาก Google Sheets</title>
+    <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            padding: 20px;
-            font-family: 'Sarabun', sans-serif;
-        }
-        .container {
-            max-width: 800px;
-            margin-top: 30px;
-        }
-        .header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px;
-            border-radius: 10px 10px 0 0;
-            text-align: center;
-        }
-        .search-box {
-            background-color: white;
-            padding: 30px;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .result-box {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: none;
-        }
-        .form-control {
-            height: 50px;
-            font-size: 18px;
-        }
-        .btn-search {
-            background-color: #27ae60;
-            color: white;
-            height: 50px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .example-text {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        .info-label {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        .info-value {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border-left: 4px solid #3498db;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>ค้นหาข้อมูลแปลงที่ดิน</h1>
-            <p class="mb-0">กรอกเลขแปลงเพื่อดูข้อมูลบางส่วน และค้นหาแปลงอื่นๆ เพิ่มเติมได้</p>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-table me-2"></i>ข้อมูลจาก Google Sheets
+        </h1>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            ข้อมูลถูกดึงมาจาก Google Sheets แบบเรียลไทม์
         </div>
         
-        <div class="search-box">
-            <div class="mb-3">
-                <label for="landNumber" class="form-label">เลขแปลงที่ดิน</label>
-                <input type="text" class="form-control" id="landNumber" placeholder="กรุณากรอกเลขแปลง" value="40001338E2">
-                <div class="example-text">✔ ตัวอย่างเลขแปลง: 40001338E2, 40001339E2, 40001340E2</div>
+        <!-- ฟอร์มสำหรับใส่ Google Sheets URL -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cog me-2"></i>ตั้งค่า Google Sheets
             </div>
-            <button class="btn btn-search w-100" id="searchBtn">
-                ค้นหาข้อมูลแปลง
-            </button>
-        </div>
-
-        <div class="loading" id="loading">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">กำลังโหลด...</span>
-            </div>
-            <p class="mt-2">กำลังค้นหาข้อมูล...</p>
-        </div>
-
-        <div class="result-box" id="resultBox">
-            <h3 class="mb-4">ข้อมูลแปลงที่ดิน</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="info-label">เลขแปลง</div>
-                    <div class="info-value" id="resultLandNumber">-</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="sheetUrl" class="form-label">Google Sheets URL (เป็น CSV):</label>
+                    <input type="text" class="form-control" id="sheetUrl" 
+                           placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv">
                 </div>
-                <div class="col-md-6">
-                    <div class="info-label">ประเภทที่ดิน</div>
-                    <div class="info-value" id="resultLandType">-</div>
+                <div class="mb-3">
+                    <label for="sheetId" class="form-label">หรือ Sheet ID:</label>
+                    <input type="text" class="form-control" id="sheetId" 
+                           placeholder="1XyZ...">
                 </div>
-                <div class="col-md-6">
-                    <div class="info-label">ตำบล/แขวง</div>
-                    <div class="info-value" id="resultSubdistrict">-</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-label">อำเภอ/เขต</div>
-                    <div class="info-value" id="resultDistrict">-</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-label">จังหวัด</div>
-                    <div class="info-value" id="resultProvince">-</div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-label">พื้นที่ (ตร.ม.)</div>
-                    <div class="info-value" id="resultArea">-</div>
-                </div>
-                <div class="col-md-12">
-                    <div class="info-label">สถานะ</div>
-                    <div class="info-value" id="resultStatus">-</div>
-                </div>
-            </div>
-            <div class="mt-4">
-                <button class="btn btn-outline-primary" id="searchAnotherBtn">
-                    ค้นหาแปลงอื่น
+                <button class="btn btn-primary" onclick="loadData()">
+                    <i class="fas fa-sync me-2"></i>โหลดข้อมูล
                 </button>
             </div>
         </div>
+        
+        <!-- Loading indicator -->
+        <div id="loading" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">กำลังโหลด...</span>
+            </div>
+            <p class="mt-2">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+        </div>
+        
+        <!-- ตารางแสดงผล -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="dataTable">
+                <thead id="tableHeader">
+                    <tr>
+                        <th>#</th>
+                        <!-- Headers จะถูกเพิ่มโดย JavaScript -->
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- ข้อมูลจะถูกเพิ่มโดย JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4 text-center text-muted">
+            <p>อัปเดตล่าสุด: <span id="updateTime">-</span></p>
+            <button class="btn btn-outline-secondary btn-sm" onclick="refreshData()">
+                <i class="fas fa-redo me-1"></i>รีเฟรชข้อมูล
+            </button>
+        </div>
     </div>
-
-    <script>
-        const sampleData = {
-            "40001338E2": {
-                landNumber: "40001338E2",
-                landType: "ที่ดินว่างเปล่า",
-                subdistrict: "คลองหนึ่ง",
-                district: "คลองหลวง",
-                province: "ปทุมธานี",
-                area: "320",
-                status: "พร้อมพัฒนา"
-            },
-            "40001339E2": {
-                landNumber: "40001339E2",
-                landType: "ที่อยู่อาศัย",
-                subdistrict: "คลองสอง",
-                district: "คลองหลวง",
-                province: "ปทุมธานี",
-                area: "400",
-                status: "มีผู้ครอบครอง"
-            },
-            "40001340E2": {
-                landNumber: "40001340E2",
-                landType: "ที่ดินเกษตร",
-                subdistrict: "คลองสาม",
-                district: "คลองหลวง",
-                province: "ปทุมธานี",
-                area: "1500",
-                status: "เช่าอยู่"
-            }
-        };
-
-        document.getElementById('searchBtn').addEventListener('click', function() {
-            searchLandData();
-        });
-
-        document.getElementById('landNumber').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchLandData();
-            }
-        });
-
-        document.getElementById('searchAnotherBtn').addEventListener('click', function() {
-            document.getElementById('landNumber').value = '';
-            document.getElementById('landNumber').focus();
-            document.getElementById('resultBox').style.display = 'none';
-        });
-
-        function searchLandData() {
-            const landNumber = document.getElementById('landNumber').value.trim();
-            
-            if (!landNumber) {
-                alert('กรุณากรอกเลขแปลงที่ดิน');
-                document.getElementById('landNumber').focus();
-                return;
-            }
-
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('resultBox').style.display = 'none';
-
-            setTimeout(() => {
-                document.getElementById('loading').style.display = 'none';
-                
-                if (sampleData[landNumber]) {
-                    const data = sampleData[landNumber];
-                    
-                    document.getElementById('resultLandNumber').textContent = data.landNumber;
-                    document.getElementById('resultLandType').textContent = data.landType;
-                    document.getElementById('resultSubdistrict').textContent = data.subdistrict;
-                    document.getElementById('resultDistrict').textContent = data.district;
-                    document.getElementById('resultProvince').textContent = data.province;
-                    document.getElementById('resultArea').textContent = data.area + " ตร.ม.";
-                    document.getElementById('resultStatus').textContent = data.status;
-                    
-                    document.getElementById('resultBox').style.display = 'block';
-                    document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    alert('ไม่พบข้อมูลแปลงที่ดินหมายเลข: ' + landNumber);
-                    document.getElementById('landNumber').select();
-                }
-            }, 800);
-        }
-
-        window.addEventListener('DOMContentLoaded', function() {
-            const initialLandNumber = document.getElementById('landNumber').value;
-            if (initialLandNumber) {
-                searchLandData();
-            }
-        });
-    </script>
+    
+    <footer class="mt-5 py-3 bg-light text-center">
+        <div class="container">
+            <p>สร้างด้วย HTML, JavaScript และ GitHub Pages | 
+                <a href="https://github.com/yourusername/your-repo" target="_blank">
+                    <i class="fab fa-github me-1"></i>ดูโค้ดบน GitHub
+                </a>
+            </p>
+        </div>
+    </footer>
+    
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
