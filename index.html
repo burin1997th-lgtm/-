@@ -3,86 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แสดงข้อมูลจาก Google Sheets</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ข้อมูลจาก Google Sheets</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+        }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .header-section {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .data-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: none;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header-custom {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            padding: 1.2rem 1.5rem;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            border-top: none;
+            padding: 1rem;
+        }
+        
+        .table td {
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .badge-custom {
+            background: var(--accent-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: normal;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .btn-custom {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            color: white;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .last-updated {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        
+        .search-box {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        footer {
+            background: #333;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+            
+            .header-section {
+                padding: 1.5rem 0;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-            <i class="fas fa-table me-2"></i>ข้อมูลจาก Google Sheets
-        </h1>
-        
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            ข้อมูลถูกดึงมาจาก Google Sheets แบบเรียลไทม์
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-table me-3"></i>ข้อมูลจาก Google Sheets</h1>
+                    <p class="mb-0">ข้อมูลถูกดึงมาจาก Google Sheets แบบเรียลไทม์</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span class="badge badge-custom">อัปเดตอัตโนมัติ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="row mb-4" id="statsSection">
+            <!-- จะถูกเติมข้อมูลโดย JavaScript -->
         </div>
         
-        <!-- ฟอร์มสำหรับใส่ Google Sheets URL -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="fas fa-cog me-2"></i>ตั้งค่า Google Sheets
+        <!-- Search and Filter -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group search-box">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="ค้นหาข้อมูล...">
+                </div>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="sheetUrl" class="form-label">Google Sheets URL (เป็น CSV):</label>
-                    <input type="text" class="form-control" id="sheetUrl" 
-                           placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv">
-                </div>
-                <div class="mb-3">
-                    <label for="sheetId" class="form-label">หรือ Sheet ID:</label>
-                    <input type="text" class="form-control" id="sheetId" 
-                           placeholder="1XyZ...">
-                </div>
-                <button class="btn btn-primary" onclick="loadData()">
-                    <i class="fas fa-sync me-2"></i>โหลดข้อมูล
+            <div class="col-md-6 text-end">
+                <button class="btn btn-custom" onclick="refreshData()">
+                    <i class="fas fa-sync-alt me-2"></i>รีเฟรชข้อมูล
                 </button>
             </div>
         </div>
         
-        <!-- Loading indicator -->
-        <div id="loading" class="text-center d-none">
-            <div class="spinner-border text-primary" role="status">
+        <!-- Filter Buttons -->
+        <div class="filter-buttons" id="filterButtons">
+            <!-- จะถูกเติมข้อมูลโดย JavaScript -->
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">กำลังโหลด...</span>
             </div>
-            <p class="mt-2">กำลังโหลดข้อมูลจาก Google Sheets...</p>
+            <p class="mt-3">กำลังโหลดข้อมูลจาก Google Sheets...</p>
         </div>
         
-        <!-- ตารางแสดงผล -->
-        <div class="table-responsive">
-            <table class="table table-striped table-hover" id="dataTable">
-                <thead id="tableHeader">
-                    <tr>
-                        <th>#</th>
-                        <!-- Headers จะถูกเพิ่มโดย JavaScript -->
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- ข้อมูลจะถูกเพิ่มโดย JavaScript -->
-                </tbody>
-            </table>
+        <!-- Data Table -->
+        <div class="data-card">
+            <div class="card-header card-header-custom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-database me-2"></i>ข้อมูลทั้งหมด</h4>
+                    <span class="badge bg-light text-dark" id="rowCount">0 รายการ</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="dataTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                <!-- Headers จะถูกเติมโดย JavaScript -->
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data จะถูกเติมโดย JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
         
-        <div class="mt-4 text-center text-muted">
-            <p>อัปเดตล่าสุด: <span id="updateTime">-</span></p>
-            <button class="btn btn-outline-secondary btn-sm" onclick="refreshData()">
-                <i class="fas fa-redo me-1"></i>รีเฟรชข้อมูล
-            </button>
+        <!-- No Data Message -->
+        <div class="text-center d-none" id="noDataMessage">
+            <div class="py-5">
+                <i class="fas fa-database fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">ไม่พบข้อมูล</h4>
+                <p>ตรวจสอบการเชื่อมต่อหรือลองรีเฟรชหน้าเว็บ</p>
+            </div>
+        </div>
+        
+        <!-- Last Updated -->
+        <div class="text-center mt-3">
+            <p class="last-updated">
+                <i class="fas fa-clock me-2"></i>อัปเดตล่าสุด: <span id="lastUpdated">-</span>
+            </p>
+        </div>
+        
+        <!-- JSON Data Viewer (Optional) -->
+        <div class="data-card">
+            <div class="card-header card-header-custom d-flex justify-content-between align-items-center" 
+                 data-bs-toggle="collapse" href="#jsonViewer" role="button">
+                <h5 class="mb-0"><i class="fas fa-code me-2"></i>ดูข้อมูล JSON</h5>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="collapse" id="jsonViewer">
+                <div class="card-body">
+                    <pre id="jsonOutput" class="bg-light p-3 rounded" style="font-size: 0.8rem; max-height: 300px; overflow: auto;"></pre>
+                </div>
+            </div>
         </div>
     </div>
     
-    <footer class="mt-5 py-3 bg-light text-center">
+    <!-- Footer -->
+    <footer>
         <div class="container">
-            <p>สร้างด้วย HTML, JavaScript และ GitHub Pages | 
-                <a href="https://github.com/yourusername/your-repo" target="_blank">
-                    <i class="fab fa-github me-1"></i>ดูโค้ดบน GitHub
-                </a>
-            </p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Google Sheets to HTML</h5>
+                    <p>แสดงข้อมูลจาก Google Sheets บนเว็บไซต์ผ่าน GitHub Pages</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>สร้างด้วย HTML, JavaScript และ Bootstrap 5</p>
+                    <p>ข้อมูลถูกดึงมาจาก: <br>
+                        <small>https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml</small>
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
     
-    <script src="script.js"></script>
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
