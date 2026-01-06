@@ -1,9 +1,10 @@
-/* Custom Styles สำหรับระบบแปลงที่ดิน */
+/* Custom Styles สำหรับระบบค้นหาแปลงที่ดิน */
 
 :root {
     --primary-color: #2c3e50;
     --secondary-color: #3498db;
-    --accent-color: #2ecc71;
+    --success-color: #2ecc71;
+    --info-color: #00cec9;
     --warning-color: #f39c12;
     --danger-color: #e74c3c;
 }
@@ -24,7 +25,7 @@ body {
 
 /* Navigation */
 .navbar {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 /* Card Styles */
@@ -40,38 +41,40 @@ body {
 
 /* Button Styles */
 .btn {
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 500;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.25rem;
     transition: all 0.3s ease;
 }
 
 .btn-primary {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    border: none;
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
-    border-color: #2980b9;
+    background: linear-gradient(135deg, #2980b9, #1c6ea4);
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
 }
 
 .btn-outline-primary {
     color: var(--secondary-color);
-    border-color: var(--secondary-color);
+    border: 2px solid var(--secondary-color);
+    background: transparent;
 }
 
 .btn-outline-primary:hover {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
+    background: var(--secondary-color);
+    color: white;
+    transform: translateY(-2px);
 }
 
 /* Form Controls */
 .form-control {
-    border-radius: 6px;
+    border-radius: 8px;
     border: 2px solid #dee2e6;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     transition: all 0.3s ease;
 }
 
@@ -85,42 +88,36 @@ body {
     font-weight: 500;
     padding: 0.5em 0.8em;
     border-radius: 20px;
+    font-size: 0.85em;
 }
 
-/* Table Styles */
-.table {
-    margin-bottom: 0;
+/* Modal Styles */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-.table thead th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #495057;
-    border-bottom: 2px solid #dee2e6;
+.modal-header {
+    border-radius: 12px 12px 0 0;
+    background-color: var(--primary-color);
+    color: white;
 }
 
-.table tbody td {
-    vertical-align: middle;
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Image Gallery */
-.image-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-}
-
-.image-gallery img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
-
-.image-gallery img:hover {
-    transform: scale(1.05);
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
 }
 
 /* Loading Animation */
@@ -142,17 +139,21 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .image-gallery {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    .hero-section {
+        padding: 40px 0 !important;
+    }
+    
+    .search-box input {
+        padding: 15px 20px !important;
+        font-size: 1rem !important;
+    }
+    
+    .parcel-badge {
+        font-size: 1rem !important;
     }
     
     .stat-number {
-        font-size: 2rem;
-    }
-    
-    .btn {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.9rem;
+        font-size: 1.8rem !important;
     }
 }
 
@@ -168,21 +169,22 @@ body {
     overflow: hidden;
 }
 
-/* Modal Styles */
-.modal-content {
-    border-radius: 10px;
+/* Image Effects */
+.img-hover-zoom {
+    overflow: hidden;
 }
 
-.modal-header {
-    border-radius: 10px 10px 0 0;
-    background-color: var(--primary-color);
-    color: white;
+.img-hover-zoom img {
+    transition: transform 0.5s ease;
+}
+
+.img-hover-zoom:hover img {
+    transform: scale(1.1);
 }
 
 /* Footer */
 footer {
-    background-color: var(--primary-color);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
 }
 
 /* Scrollbar Styling */
@@ -203,19 +205,4 @@ footer {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #2980b9;
-}
-
-/* Print Styles */
-@media print {
-    .navbar,
-    footer,
-    .btn,
-    .no-print {
-        display: none !important;
-    }
-    
-    .card {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-    }
 }
