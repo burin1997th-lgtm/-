@@ -3,8 +3,9 @@ const CONFIG = {
     GOOGLE_APPS_SCRIPT_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true',
     SHEET_ID: '15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw',
     SHEET_NAME: 'สถานะ',
-    CACHE_DURATION: 5 * 60 * 1000, // 5 minutes cache
-    ITEMS_PER_PAGE: 25
+    ITEMS_PER_PAGE: 50,
+    AUTO_REFRESH_INTERVAL: 300000, // 5 minutes
+    CACHE_DURATION: 60000 // 1 minute
 };
 
 // Global variables
@@ -13,18 +14,42 @@ let currentPage = 1;
 let totalPages = 1;
 let searchCount = 0;
 let dataTable = null;
+let autoRefreshTimer = null;
+let isAutoRefresh = false;
 
 // Initialize when page loads
 $(document).ready(function() {
-    initializePage();
-    loadDataFromGoogleSheet();
+    console.log('🚀 กำลังเริ่มต้นระบบ...');
+    initializeApp();
+});
+
+// Initialize application
+function initializeApp() {
+    // Load initial data
+    loadAllData();
     
     // Set current time
     updateCurrentTime();
-    setInterval(updateCurrentTime, 60000); // Update every minute
+    setInterval(updateCurrentTime, 1000);
     
-    // Search button click
+    // Button event listeners
+    $('#showAllBtn').click(loadAllData);
+    $('#refreshAllBtn').click(() => loadAllData(true));
+    $('#downloadBtn').click(downloadAllData);
     $('#searchBtn').click(performSearch);
+    $('#retryBtn').click(() => loadAllData(true));
+    
+    // Export buttons
+    $('#exportCsvBtn').click(exportToCSV);
+    $('#printBtn').click(printData);
+    $('#copyBtn').click(copyDataToClipboard);
+    
+    // Quick action buttons
+    $('#firstPageBtn').click(() => changePage(1));
+    $('#prevPageBtn').click(() => changePage(currentPage - 1));
+    $('#nextPageBtn').click(() => changePage(currentPage + 1));
+    $('#lastPageBtn').click(() => changePage(totalPages));
+    $('#autoRefreshBtn').click(toggleAutoRefresh);
     
     // Search on Enter key
     $('#searchInput').keypress(function(e) {
@@ -33,100 +58,117 @@ $(document).ready(function() {
         }
     });
     
-    // Refresh button
-    $('#refreshBtn').click(function() {
-        $(this).addClass('refreshing');
-        loadDataFromGoogleSheet(true);
-        setTimeout(() => $(this).removeClass('refreshing'), 1000);
+    // View source code
+    $('#viewSource').click(function(e) {
+        e.preventDefault();
+        window.open('https://github.com/yourusername/your-repo', '_blank');
     });
     
-    // Export buttons
-    $('#exportExcel').click(exportToExcel);
-    $('#exportPDF').click(exportToPDF);
-    $('#printData').click(printData);
-});
-
-// Initialize page
-function initializePage() {
-    // Load from localStorage if available
-    const cachedData = localStorage.getItem('sheetData');
-    const cachedTime = localStorage.getItem('lastUpdate');
+    // Initialize with cache if available
+    const cachedData = localStorage.getItem('sheetDataCache');
+    const cachedTime = localStorage.getItem('sheetDataTime');
     
     if (cachedData && cachedTime) {
         const timeDiff = Date.now() - parseInt(cachedTime);
         if (timeDiff < CONFIG.CACHE_DURATION) {
             allData = JSON.parse(cachedData);
-            displayData();
-            showToast('โหลดข้อมูลจากแคช', 'info');
+            displayAllData();
+            showToast('โหลดข้อมูลจากแคชสำเร็จ', 'success');
         }
     }
 }
 
-// Load data from Google Sheet
-function loadDataFromGoogleSheet(forceRefresh = false) {
+// Load all data from Google Sheet
+function loadAllData(forceRefresh = false) {
+    console.log('📥 กำลังโหลดข้อมูลทั้งหมด...');
+    
     showLoading(true);
+    hideDataContainer();
     
-    // Clear existing table if refreshing
+    // Show refreshing animation
     if (forceRefresh) {
-        allData = [];
-        if (dataTable) {
-            dataTable.destroy();
-            dataTable = null;
+        $('#refreshAllBtn').addClass('refreshing');
+    }
+    
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+        const cachedData = localStorage.getItem('sheetDataCache');
+        const cachedTime = localStorage.getItem('sheetDataTime');
+        
+        if (cachedData && cachedTime) {
+            const timeDiff = Date.now() - parseInt(cachedTime);
+            if (timeDiff < CONFIG.CACHE_DURATION) {
+                allData = JSON.parse(cachedData);
+                displayAllData();
+                showToast('โหลดข้อมูลจากแคชสำเร็จ', 'info');
+                showLoading(false);
+                $('#refreshAllBtn').removeClass('refreshing');
+                return;
+            }
         }
     }
     
-    // Check cache first
-    const cachedData = localStorage.getItem('sheetData');
-    const cachedTime = localStorage.getItem('lastUpdate');
+    // Build API URL
+    const apiUrl = `${CONFIG.GOOGLE_APPS_SCRIPT_URL}?action=getData&sheetId=${CONFIG.SHEET_ID}&sheetName=${CONFIG.SHEET_NAME}&timestamp=${Date.now()}`;
     
-    if (!forceRefresh && cachedData && cachedTime) {
-        const timeDiff = Date.now() - parseInt(cachedTime);
-        if (timeDiff < CONFIG.CACHE_DURATION) {
-            allData = JSON.parse(cachedData);
-            displayData();
-            showToast('โหลดข้อมูลจากแคชสำเร็จ', 'success');
-            showLoading(false);
-            return;
-        }
-    }
+    console.log('🔗 API URL:', apiUrl);
     
-    // Fetch from Google Apps Script
-    const url = `${CONFIG.GOOGLE_APPS_SCRIPT_URL}?action=getData&sheetId=${CONFIG.SHEET_ID}&sheetName=${CONFIG.SHEET_NAME}`;
-    
+    // Fetch data using AJAX
     $.ajax({
-        url: url,
+        url: apiUrl,
         method: 'GET',
         dataType: 'json',
-        crossDomain: true,
-        timeout: 30000, // 30 seconds timeout
+        timeout: 30000,
+        beforeSend: function() {
+            console.log('⏳ กำลังดึงข้อมูล...');
+        },
         success: function(response) {
-            if (response.success && response.data) {
+            console.log('✅ ได้รับข้อมูลจาก API:', response);
+            
+            if (response && response.success && response.data) {
+                // Process and store data
                 allData = response.data;
                 
-                // Save to localStorage
-                localStorage.setItem('sheetData', JSON.stringify(allData));
-                localStorage.setItem('lastUpdate', Date.now().toString());
+                // Cache the data
+                localStorage.setItem('sheetDataCache', JSON.stringify(allData));
+                localStorage.setItem('sheetDataTime', Date.now().toString());
                 
-                displayData();
+                // Display data
+                displayAllData();
+                
+                // Update statistics
                 updateStatistics();
-                showToast('โหลดข้อมูลสำเร็จ', 'success');
+                
+                // Show success message
+                const count = allData.length;
+                showToast(`โหลดข้อมูลสำเร็จ ${count} รายการ`, 'success');
+                
+                // Update data status
+                $('#dataStatus').html('<span class="status-online">✓ ออนไลน์</span>');
+                
             } else {
-                showError('ไม่สามารถดึงข้อมูลได้: ' + (response.message || 'Unknown error'));
+                console.error('❌ API response error:', response);
+                showError('รูปแบบข้อมูลไม่ถูกต้อง');
             }
-            showLoading(false);
         },
         error: function(xhr, status, error) {
-            console.error('Error loading data:', error);
+            console.error('❌ API request failed:', status, error);
             
-            // Try fallback method - load CSV from published sheet
+            // Try fallback method
             tryFallbackMethod();
+        },
+        complete: function() {
+            showLoading(false);
+            $('#refreshAllBtn').removeClass('refreshing');
         }
     });
 }
 
-// Fallback method using published CSV
+// Fallback method using CSV export
 function tryFallbackMethod() {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv`;
+    console.log('🔄 ลองวิธีสำรอง...');
+    
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${CONFIG.SHEET_NAME}`;
     
     Papa.parse(csvUrl, {
         download: true,
@@ -135,73 +177,183 @@ function tryFallbackMethod() {
         complete: function(results) {
             if (results.data && results.data.length > 0) {
                 allData = results.data;
-                displayData();
+                displayAllData();
                 updateStatistics();
-                showToast('โหลดข้อมูลสำเร็จ (ใช้วิธีสำรอง)', 'success');
+                showToast('โหลดข้อมูลสำเร็จ (ใช้วิธีสำรอง)', 'warning');
+                $('#dataStatus').html('<span class="status-online">✓ สำรอง</span>');
             } else {
-                showError('ไม่สามารถดึงข้อมูลได้');
+                showError('ไม่พบข้อมูลใน Sheet');
+                $('#dataStatus').html('<span class="status-offline">✗ ออฟไลน์</span>');
             }
-            showLoading(false);
         },
         error: function(error) {
-            console.error('CSV parse error:', error);
+            console.error('❌ CSV parse error:', error);
             showError('ไม่สามารถเชื่อมต่อกับ Google Sheet ได้');
-            showLoading(false);
+            $('#dataStatus').html('<span class="status-offline">✗ ล้มเหลว</span>');
         }
     });
 }
 
-// Display data in table
-function displayData() {
+// Display all data in table
+function displayAllData() {
+    console.log('📊 กำลังแสดงข้อมูล...');
+    
     if (!allData || allData.length === 0) {
-        $('#noData').show();
-        $('#dataTableContainer').hide();
+        showEmptyState();
         return;
     }
     
-    $('#noData').hide();
-    $('#dataTableContainer').show();
+    // Hide loading and empty states
+    hideLoading();
+    hideEmptyState();
     
-    // Create table headers from first row keys
+    // Show data container
+    $('#dataContainer').fadeIn();
+    
+    // Get headers from first data row
     const headers = Object.keys(allData[0]);
-    const headerHtml = headers.map(header => 
-        `<th>${header}</th>`
+    const headersHtml = headers.map((header, index) => 
+        `<th data-column="${index}">${formatHeader(header)}</th>`
     ).join('');
     
-    $('#tableHeader').html(`<th>#</th>${headerHtml}`);
+    // Set table headers
+    $('#tableHeaders').html(`<th>#</th>${headersHtml}`);
     
-    // Create table body
-    let tableBody = '';
-    allData.forEach((row, index) => {
-        let rowHtml = `<td>${index + 1}</td>`;
+    // Calculate pagination
+    totalPages = Math.ceil(allData.length / CONFIG.ITEMS_PER_PAGE);
+    currentPage = Math.min(currentPage, totalPages);
+    
+    // Calculate start and end indices
+    const startIndex = (currentPage - 1) * CONFIG.ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + CONFIG.ITEMS_PER_PAGE, allData.length);
+    
+    // Build table body
+    let tableBodyHtml = '';
+    
+    for (let i = startIndex; i < endIndex; i++) {
+        const row = allData[i];
+        let rowHtml = `<td class="text-center fw-bold">${i + 1}</td>`;
         
         headers.forEach(header => {
             const value = row[header] || '';
-            rowHtml += `<td>${escapeHtml(value.toString())}</td>`;
+            rowHtml += `<td>${formatCellValue(value)}</td>`;
         });
         
-        tableBody += `<tr>${rowHtml}</tr>`;
-    });
-    
-    $('#tableBody').html(tableBody);
-    
-    // Initialize DataTable if not already
-    if (!dataTable) {
-        dataTable = $('#dataTable').DataTable({
-            pageLength: CONFIG.ITEMS_PER_PAGE,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'ทั้งหมด']],
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json'
-            },
-            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                 '<"row"<"col-sm-12"tr>>' +
-                 '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-            responsive: true,
-            order: [[0, 'asc']]
-        });
+        tableBodyHtml += `<tr>${rowHtml}</tr>`;
     }
     
+    // Set table body
+    $('#tableBody').html(tableBodyHtml);
+    
+    // Update pagination
     updatePagination();
+    
+    // Update data info
+    $('#dataInfo').html(`
+        แสดง <strong>${startIndex + 1}</strong> ถึง <strong>${endIndex}</strong> 
+        จากทั้งหมด <strong>${allData.length}</strong> รายการ
+    `);
+    
+    console.log(`✅ แสดงข้อมูล ${allData.length} รายการ`);
+}
+
+// Format header text
+function formatHeader(header) {
+    return header
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase())
+        .trim();
+}
+
+// Format cell value for display
+function formatCellValue(value) {
+    if (value === null || value === undefined || value === '') {
+        return '<span class="text-muted">-</span>';
+    }
+    
+    const strValue = String(value).trim();
+    
+    // Check if it's a number
+    if (!isNaN(strValue) && strValue !== '') {
+        return Number(strValue).toLocaleString('th-TH');
+    }
+    
+    // Check if it's a date
+    const date = new Date(strValue);
+    if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('th-TH');
+    }
+    
+    // Default: return as is
+    return escapeHtml(strValue);
+}
+
+// Update pagination controls
+function updatePagination() {
+    if (totalPages <= 1) {
+        $('#paginationContainer').html('');
+        return;
+    }
+    
+    let paginationHtml = '<nav><ul class="pagination justify-content-end">';
+    
+    // Previous button
+    if (currentPage > 1) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `;
+    }
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHtml += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i}); return false;">
+                    ${i}
+                </a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    if (currentPage < totalPages) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `;
+    }
+    
+    paginationHtml += '</ul></nav>';
+    
+    $('#paginationContainer').html(paginationHtml);
+}
+
+// Change page
+function changePage(page) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    
+    currentPage = page;
+    displayAllData();
+    
+    // Scroll to top of table
+    $('html, body').animate({
+        scrollTop: $('#dataContainer').offset().top - 100
+    }, 300);
 }
 
 // Perform search
@@ -221,122 +373,67 @@ function performSearch() {
     searchCount++;
     $('#searchCount').text(searchCount);
     
+    const searchLower = searchTerm.toLowerCase();
     const searchResults = allData.filter(row => {
-        return Object.values(row).some(value => 
-            value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    });
-    
-    displaySearchResults(searchResults, searchTerm);
-}
-
-// Display search results
-function displaySearchResults(results, searchTerm) {
-    $('#searchResults').show();
-    
-    if (results.length === 0) {
-        $('#searchResultContent').html(`
-            <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                ไม่พบผลลัพธ์สำหรับ "${searchTerm}"
-            </div>
-        `);
-        return;
-    }
-    
-    const headers = Object.keys(results[0]);
-    
-    let resultHtml = `
-        <div class="alert alert-success">
-            <i class="fas fa-check-circle me-2"></i>
-            พบ ${results.length} รายการที่ตรงกับ "${searchTerm}"
-        </div>
-        <div class="table-responsive">
-            <table class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        ${headers.map(h => `<th>${h}</th>`).join('')}
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-    
-    results.forEach((row, index) => {
-        resultHtml += '<tr>';
-        resultHtml += `<td>${index + 1}</td>`;
-        
-        headers.forEach(header => {
-            let value = row[header] || '';
-            value = value.toString();
-            
-            // Highlight search term
-            if (value.toLowerCase().includes(searchTerm.toLowerCase())) {
-                const regex = new RegExp(`(${searchTerm})`, 'gi');
-                value = value.replace(regex, '<span class="highlight">$1</span>');
+        return Object.values(row).some(value => {
+            if (value && typeof value === 'string') {
+                return value.toLowerCase().includes(searchLower);
             }
-            
-            resultHtml += `<td>${value}</td>`;
+            return String(value).toLowerCase().includes(searchLower);
         });
-        
-        resultHtml += '</tr>';
     });
     
-    resultHtml += `
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    $('#searchResultContent').html(resultHtml);
-    
-    // Scroll to results
-    $('html, body').animate({
-        scrollTop: $('#searchResults').offset().top - 100
-    }, 500);
-}
-
-// Update statistics
-function updateStatistics() {
-    $('#totalCount').text(allData.length);
-    $('#columnCount').text(allData.length > 0 ? Object.keys(allData[0]).length : 0);
-    
-    const now = new Date();
-    const timeString = now.toLocaleString('th-TH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    
-    $('#lastUpdate').text(timeString);
-}
-
-// Update pagination
-function updatePagination() {
-    if (!dataTable) return;
-    
-    const info = dataTable.page.info();
-    const totalItems = allData.length;
-    const itemsPerPage = CONFIG.ITEMS_PER_PAGE;
-    
-    totalPages = Math.ceil(totalItems / itemsPerPage);
-    
-    $('#dataTableInfo').html(`
-        แสดง ${info.start + 1} ถึง ${info.end} จากทั้งหมด ${totalItems} รายการ
-    `);
-}
-
-// Export to Excel
-function exportToExcel() {
-    if (allData.length === 0) {
-        showToast('ไม่มีข้อมูลสำหรับส่งออก', 'warning');
+    if (searchResults.length === 0) {
+        showToast(`ไม่พบผลลัพธ์สำหรับ "${searchTerm}"`, 'info');
         return;
     }
     
-    // Create CSV
+    // Temporarily replace data with search results
+    const originalData = [...allData];
+    allData = searchResults;
+    currentPage = 1;
+    displayAllData();
+    
+    // Show search info
+    const searchInfo = `
+        <div class="alert alert-info alert-dismissible fade show mb-3">
+            <i class="fas fa-search me-2"></i>
+            พบ <strong>${searchResults.length}</strong> รายการที่ตรงกับ "<strong>${searchTerm}</strong>"
+            <button type="button" class="btn-close" onclick="clearSearch()"></button>
+        </div>
+    `;
+    
+    $('#dataContainer').prepend(searchInfo);
+    
+    // Store original data for clearing search
+    window.tempOriginalData = originalData;
+    window.tempSearchTerm = searchTerm;
+    
+    showToast(`พบ ${searchResults.length} รายการ`, 'success');
+}
+
+// Clear search and show all data
+function clearSearch() {
+    if (window.tempOriginalData) {
+        allData = window.tempOriginalData;
+        currentPage = 1;
+        displayAllData();
+        
+        // Clear search input
+        $('#searchInput').val('');
+        
+        showToast('แสดงข้อมูลทั้งหมดแล้ว', 'info');
+    }
+}
+
+// Download all data
+function downloadAllData() {
+    if (allData.length === 0) {
+        showToast('ไม่มีข้อมูลสำหรับดาวน์โหลด', 'warning');
+        return;
+    }
+    
+    // Create CSV content
     const headers = Object.keys(allData[0]);
     const csvRows = [];
     
@@ -347,8 +444,8 @@ function exportToExcel() {
     allData.forEach(row => {
         const values = headers.map(header => {
             const value = row[header] || '';
-            // Escape commas and quotes
-            const escaped = value.toString().replace(/"/g, '""');
+            // Escape special characters
+            const escaped = String(value).replace(/"/g, '""');
             return `"${escaped}"`;
         });
         csvRows.push(values.join(','));
@@ -359,119 +456,235 @@ function exportToExcel() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
     link.setAttribute('href', url);
-    link.setAttribute('download', `IN-TECH_Data_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `IN-TECH_Data_${timestamp}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    showToast('ส่งออกข้อมูลเป็น Excel สำเร็จ', 'success');
+    showToast('ดาวน์โหลดข้อมูลสำเร็จ', 'success');
 }
 
-// Export to PDF
-function exportToPDF() {
-    showToast('กำลังเตรียมไฟล์ PDF...', 'info');
-    // Note: You would need a PDF library like jsPDF for this
-    // This is a simplified version
-    window.print();
+// Export to CSV
+function exportToCSV() {
+    downloadAllData();
 }
 
 // Print data
 function printData() {
-    const printWindow = window.open('', '_blank');
-    const headers = Object.keys(allData[0]);
+    if (allData.length === 0) {
+        showToast('ไม่มีข้อมูลสำหรับพิมพ์', 'warning');
+        return;
+    }
     
-    let printContent = `
+    const printContent = generatePrintContent();
+    const printWindow = window.open('', '_blank');
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+
+// Generate print content
+function generatePrintContent() {
+    const headers = Object.keys(allData[0]);
+    const now = new Date();
+    const timestamp = now.toLocaleString('th-TH');
+    
+    let tableRows = '';
+    allData.forEach((row, index) => {
+        tableRows += '<tr>';
+        tableRows += `<td class="text-center">${index + 1}</td>`;
+        headers.forEach(header => {
+            tableRows += `<td>${row[header] || ''}</td>`;
+        });
+        tableRows += '</tr>';
+    });
+    
+    return `
         <!DOCTYPE html>
         <html>
         <head>
-            <title>IN-TECH Data Report</title>
+            <title>รายงานข้อมูล IN-TECH</title>
+            <meta charset="UTF-8">
             <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                table { border-collapse: collapse; width: 100%; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
+                body { font-family: 'TH Sarabun New', sans-serif; margin: 20px; }
+                @page { size: A4 landscape; margin: 20mm; }
+                h1, h2, h3 { text-align: center; margin: 10px 0; }
                 .header { text-align: center; margin-bottom: 20px; }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; }
+                th { background-color: #f2f2f2; border: 1px solid #ddd; padding: 8px; text-align: center; }
+                td { border: 1px solid #ddd; padding: 6px; }
+                .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+                .page-break { page-break-after: always; }
+                .no-print { display: none; }
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>ข้อมูลระบบ IN-TECH</h1>
-                <p>ออกรายงานเมื่อ: ${new Date().toLocaleString('th-TH')}</p>
+                <h1>รายงานข้อมูลทั้งหมด IN-TECH</h1>
+                <h3>โครงการผ่ากล</h3>
+                <p>ออกรายงานเมื่อ: ${timestamp}</p>
+                <p>จำนวนข้อมูลทั้งหมด: ${allData.length} รายการ</p>
             </div>
+            
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        ${headers.map(h => `<th>${h}</th>`).join('')}
+                        <th width="50">#</th>
+                        ${headers.map(h => `<th>${formatHeader(h)}</th>`).join('')}
                     </tr>
                 </thead>
                 <tbody>
-    `;
-    
-    allData.forEach((row, index) => {
-        printContent += '<tr>';
-        printContent += `<td>${index + 1}</td>`;
-        
-        headers.forEach(header => {
-            printContent += `<td>${row[header] || ''}</td>`;
-        });
-        
-        printContent += '</tr>';
-    });
-    
-    printContent += `
+                    ${tableRows}
                 </tbody>
             </table>
-            <p style="margin-top: 20px; text-align: center;">
-                จำนวนทั้งหมด: ${allData.length} รายการ
-            </p>
+            
+            <div class="footer">
+                <p>ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากล</p>
+                <p>หน้า 1/1</p>
+            </div>
         </body>
         </html>
     `;
-    
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.print();
 }
 
-// Helper functions
+// Copy data to clipboard
+function copyDataToClipboard() {
+    if (allData.length === 0) {
+        showToast('ไม่มีข้อมูลสำหรับคัดลอก', 'warning');
+        return;
+    }
+    
+    const headers = Object.keys(allData[0]);
+    const csvRows = [];
+    
+    // Add headers
+    csvRows.push(headers.join('\t'));
+    
+    // Add data rows (limited to 1000 rows for clipboard)
+    const maxRows = Math.min(1000, allData.length);
+    for (let i = 0; i < maxRows; i++) {
+        const values = headers.map(header => {
+            return allData[i][header] || '';
+        });
+        csvRows.push(values.join('\t'));
+    }
+    
+    const textToCopy = csvRows.join('\n');
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast(`คัดลอกข้อมูล ${maxRows} รายการสำเร็จ`, 'success');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showToast('ไม่สามารถคัดลอกได้', 'danger');
+    });
+}
+
+// Toggle auto-refresh
+function toggleAutoRefresh() {
+    const btn = $('#autoRefreshBtn');
+    
+    if (isAutoRefresh) {
+        // Stop auto-refresh
+        clearInterval(autoRefreshTimer);
+        btn.removeClass('btn-success').addClass('btn-outline-success');
+        btn.html('<i class="fas fa-sync"></i> รีเฟรชอัตโนมัติ');
+        showToast('ปิดการรีเฟรชอัตโนมัติ', 'info');
+    } else {
+        // Start auto-refresh
+        autoRefreshTimer = setInterval(() => {
+            loadAllData(true);
+            showToast('อัปเดตข้อมูลอัตโนมัติ', 'info');
+        }, CONFIG.AUTO_REFRESH_INTERVAL);
+        
+        btn.removeClass('btn-outline-success').addClass('btn-success');
+        btn.html('<i class="fas fa-stop"></i> หยุดรีเฟรช');
+        showToast('เปิดการรีเฟรชอัตโนมัติทุก 5 นาที', 'success');
+    }
+    
+    isAutoRefresh = !isAutoRefresh;
+}
+
+// Update statistics
+function updateStatistics() {
+    const count = allData.length;
+    $('#totalRecords').text(count.toLocaleString('th-TH'));
+    
+    $('#columnCount').text(allData.length > 0 ? Object.keys(allData[0]).length : 0);
+    
+    const now = new Date();
+    $('#lastUpdateTime').text(now.toLocaleTimeString('th-TH'));
+}
+
+// Update current time
+function updateCurrentTime() {
+    const now = new Date();
+    $('#currentTime').text(now.toLocaleString('th-TH'));
+}
+
+// Show loading state
 function showLoading(show) {
     if (show) {
-        $('#loading').show();
-        $('#dataTableContainer').hide();
-        $('#noData').hide();
+        $('#loadingState').show();
     } else {
-        $('#loading').hide();
+        $('#loadingState').hide();
     }
 }
 
-function showError(message) {
-    $('#noData').show();
-    $('#dataTableContainer').hide();
-    $('#loading').hide();
-    
-    showToast(message, 'danger');
+function hideLoading() {
+    $('#loadingState').hide();
 }
 
+// Show empty state
+function showEmptyState() {
+    $('#emptyState').show();
+    $('#dataContainer').hide();
+    hideLoading();
+}
+
+function hideEmptyState() {
+    $('#emptyState').hide();
+}
+
+// Hide data container
+function hideDataContainer() {
+    $('#dataContainer').hide();
+}
+
+// Show toast notification
 function showToast(message, type = 'info') {
-    // Remove existing toasts
-    $('.toast-container').remove();
-    
     const toastId = 'toast-' + Date.now();
+    const icons = {
+        success: 'check-circle',
+        error: 'exclamation-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle',
+        danger: 'times-circle'
+    };
+    
     const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-${getToastIcon(type)} me-2"></i>
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-${type} text-white">
+                <i class="fas fa-${icons[type] || 'info-circle'} me-2"></i>
+                <strong class="me-auto">IN-TECH System</strong>
+                <small>just now</small>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
             </div>
         </div>
     `;
     
-    $('body').append(`<div class="toast-container">${toastHtml}</div>`);
+    $('.toast-container').append(toastHtml);
     
     const toastElement = $(`#${toastId}`);
     const toast = new bootstrap.Toast(toastElement, {
@@ -487,15 +700,13 @@ function showToast(message, type = 'info') {
     });
 }
 
-function getToastIcon(type) {
-    switch(type) {
-        case 'success': return 'check-circle';
-        case 'warning': return 'exclamation-triangle';
-        case 'danger': return 'times-circle';
-        default: return 'info-circle';
-    }
+// Show error message
+function showError(message) {
+    showEmptyState();
+    showToast(message, 'danger');
 }
 
+// Escape HTML special characters
 function escapeHtml(text) {
     const map = {
         '&': '&amp;',
@@ -507,17 +718,20 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-function updateCurrentTime() {
-    const now = new Date();
-    const timeString = now.toLocaleString('th-TH', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    
-    $('#currentTime').text(timeString);
+// Initialize DataTable (for advanced features)
+function initializeDataTable() {
+    if ($.fn.DataTable && !dataTable) {
+        dataTable = $('#mainDataTable').DataTable({
+            pageLength: CONFIG.ITEMS_PER_PAGE,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'ทั้งหมด']],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/th.json'
+            },
+            responsive: true,
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ]
+        });
+    }
 }
