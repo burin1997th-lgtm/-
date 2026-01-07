@@ -9,29 +9,62 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- DataTables CSS (Optional for better table) -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --primary-color: #1a73e8;
             --secondary-color: #34a853;
-            --accent-color: #4285f4;
             --warning-color: #fbbc05;
             --danger-color: #ea4335;
             --light-bg: #f8f9fa;
         }
         
+        * {
+            font-family: 'Sarabun', sans-serif;
+        }
+        
         body {
-            font-family: 'Sarabun', 'Kanit', sans-serif;
             background-color: #f5f7fa;
             padding-top: 20px;
             padding-bottom: 40px;
         }
         
-        .navbar-brand {
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-icon {
+            font-size: 3rem;
+            margin-right: 20px;
+        }
+        
+        .project-title {
             font-weight: 700;
-            color: var(--primary-color) !important;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+        }
+        
+        .project-subtitle {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
         }
         
         .card {
@@ -40,6 +73,7 @@
             border: none;
             margin-bottom: 20px;
             transition: transform 0.2s;
+            height: 100%;
         }
         
         .card:hover {
@@ -50,11 +84,13 @@
         .card-header {
             border-radius: 10px 10px 0 0 !important;
             font-weight: 600;
+            padding: 15px 20px;
         }
         
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            font-weight: 500;
         }
         
         .btn-primary:hover {
@@ -65,13 +101,19 @@
         .btn-success {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
+            font-weight: 500;
         }
         
-        .search-highlight {
-            background-color: #fff3cd;
-            padding: 0 2px;
-            border-radius: 3px;
-            font-weight: 600;
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            font-weight: 500;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            font-weight: 500;
         }
         
         .stats-card {
@@ -81,6 +123,8 @@
             text-align: center;
             box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             transition: all 0.3s;
+            border-top: 4px solid var(--primary-color);
+            height: 100%;
         }
         
         .stats-card:hover {
@@ -88,27 +132,17 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        .stats-primary {
-            border-top: 4px solid var(--primary-color);
-        }
-        
-        .stats-success {
-            border-top: 4px solid var(--secondary-color);
-        }
-        
-        .stats-info {
-            border-top: 4px solid #17a2b8;
-        }
-        
         .stats-icon {
             font-size: 2.5rem;
             margin-bottom: 10px;
+            color: var(--primary-color);
         }
         
         .stats-value {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 5px;
+            color: #333;
         }
         
         .stats-label {
@@ -118,34 +152,27 @@
             letter-spacing: 1px;
         }
         
-        .badge {
-            font-weight: 500;
-            padding: 5px 10px;
-        }
-        
         .table th {
             background-color: #f1f5fd;
             font-weight: 600;
             color: #333;
             border-top: none;
+            padding: 12px 15px;
+        }
+        
+        .table td {
+            padding: 10px 15px;
+            vertical-align: middle;
         }
         
         .table-hover tbody tr:hover {
             background-color: rgba(26, 115, 232, 0.05);
+            cursor: pointer;
         }
         
         .pagination .page-item.active .page-link {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         #loading {
@@ -159,18 +186,31 @@
             height: 3rem;
         }
         
-        .method-badge {
-            font-size: 0.7rem;
-            position: absolute;
-            top: 10px;
-            right: 10px;
+        .preview-image {
+            transition: transform 0.3s ease;
+            border: 2px solid #dee2e6;
+            object-fit: cover;
         }
         
-        .search-box {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
+        .preview-image:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
+        }
+        
+        .image-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .method-badge {
+            font-size: 0.7rem;
+            background: #e8f0fe;
+            color: var(--primary-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
         }
         
         footer {
@@ -181,52 +221,49 @@
             font-size: 0.9rem;
         }
         
-        .method-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
+        .highlight {
+            background-color: #fff3cd;
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 600;
         }
         
-        .method-active {
-            background-color: var(--secondary-color);
+        .search-highlight {
+            background-color: #d1ecf1;
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 600;
         }
         
-        .method-inactive {
-            background-color: #ccc;
+        .fade-in {
+            animation: fadeIn 0.5s;
         }
         
-        .logo-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .logo-icon {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-right: 15px;
-        }
-        
-        .project-title {
-            color: var(--primary-color);
-            font-weight: 700;
-            margin-bottom: 0;
-        }
-        
-        .project-subtitle {
-            color: #6c757d;
-            font-size: 0.9rem;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @media (max-width: 768px) {
-            .stats-card {
-                margin-bottom: 15px;
+            .logo-container {
+                padding: 15px;
+            }
+            
+            .logo-icon {
+                font-size: 2rem;
+                margin-right: 15px;
+            }
+            
+            .project-title {
+                font-size: 1.4rem;
             }
             
             .search-box {
                 padding: 15px;
+            }
+            
+            .stats-card {
+                margin-bottom: 15px;
             }
         }
     </style>
@@ -235,20 +272,14 @@
     <div class="container-fluid">
         <!-- Header -->
         <header class="mb-4">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="logo-container">
-                        <i class="fas fa-tractor logo-icon"></i>
-                        <div>
-                            <h1 class="project-title">ระบบค้นหาเลขแปลง IN-TECH</h1>
-                            <p class="project-subtitle">โครงการผ่ากอ | ฐานข้อมูลแปลงเกษตรและโครงข่ายไฟฟ้า</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 text-md-end">
+            <div class="logo-container">
+                <i class="fas fa-tractor logo-icon"></i>
+                <div>
+                    <h1 class="project-title">ระบบค้นหาเลขแปลง IN-TECH</h1>
+                    <p class="project-subtitle">โครงการผ่ากอ | ฐานข้อมูลแปลงเกษตรและโครงข่ายไฟฟ้า</p>
                     <div class="mt-2">
-                        <span class="badge bg-primary">ออนไลน์</span>
-                        <span class="badge bg-secondary" id="currentMethod">วิธีโหลด: Published CSV</span>
+                        <span class="badge bg-light text-primary me-2">ออนไลน์</span>
+                        <span class="method-badge" id="currentMethod">Published CSV</span>
                     </div>
                 </div>
             </div>
@@ -259,73 +290,77 @@
         
         <!-- Search Box -->
         <div class="search-box">
-            <h4 class="mb-4"><i class="fas fa-search me-2"></i>ค้นหาเลขแปลง IN-TECH</h4>
-            
-            <div class="row mb-4">
-                <div class="col-lg-6 mb-3">
+            <div class="row">
+                <div class="col-lg-8 mb-3">
                     <div class="card h-100">
                         <div class="card-header bg-primary text-white">
-                            <i class="fas fa-hashtag me-2"></i>ค้นหาเลขแปลง
+                            <i class="fas fa-search me-2"></i>ค้นหาข้อมูล
                         </div>
                         <div class="card-body">
-                            <p class="card-text">ค้นหาด้วยเลขแปลง IN-TECH, เลขโครงข่ายไฟฟ้า หรือชื่อราคาไฟ</p>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="searchIntechInput" 
-                                       placeholder="เช่น 12345, THA-001, หรือชื่อไฟ">
-                                <button class="btn btn-primary" type="button" id="searchIntechBtn">
-                                    <i class="fas fa-search me-1"></i> ค้นหา
-                                </button>
-                            </div>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i> ค้นหาในคอลัมน์: เลขแปลงและยกั, เลขโครงข่าย, ชื่อราคาไฟ
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">ค้นหาเลขแปลง IN-TECH</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                                        <input type="text" class="form-control" id="searchIntechInput" 
+                                               placeholder="เช่น 12345, THA-001, หรือชื่อไฟ">
+                                        <button class="btn btn-primary" type="button" id="searchIntechBtn">
+                                            <i class="fas fa-search me-1"></i> ค้นหา
+                                        </button>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i> ค้นหาในคอลัมน์: เลขแปลงและยกั, เลขโครงข่าย, ชื่อราคาไฟ
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">ค้นหาทั่วไป</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="searchGeneralInput" 
+                                               placeholder="เช่น ชื่อเกษตรกร, พันธุ์, เขต">
+                                        <button class="btn btn-info" type="button" id="searchGeneralBtn">
+                                            <i class="fas fa-search me-1"></i> ค้นหา
+                                        </button>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i> ค้นหาในทุกคอลัมน์ที่มีในข้อมูล
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-lg-6 mb-3">
+                <div class="col-lg-4 mb-3">
                     <div class="card h-100">
                         <div class="card-header bg-info text-white">
-                            <i class="fas fa-search me-2"></i>ค้นหาทั่วไป
+                            <i class="fas fa-tools me-2"></i>เครื่องมือ
                         </div>
                         <div class="card-body">
-                            <p class="card-text">ค้นหาในทุกคอลัมน์ของฐานข้อมูล</p>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" id="searchGeneralInput" 
-                                       placeholder="เช่น ชื่อเกษตรกร, พันธุ์, เขต">
-                                <button class="btn btn-info" type="button" id="searchGeneralBtn">
-                                    <i class="fas fa-search me-1"></i> ค้นหา
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" id="loadDataBtn">
+                                    <i class="fas fa-sync-alt me-1"></i> โหลดข้อมูลใหม่
                                 </button>
-                            </div>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i> ค้นหาในทุกคอลัมน์ที่มีในข้อมูล
+                                <button class="btn btn-warning" id="clearSearchBtn">
+                                    <i class="fas fa-times me-1"></i> ล้างการค้นหา
+                                </button>
+                                <button class="btn btn-outline-primary" id="testConnectionBtn">
+                                    <i class="fas fa-wifi me-1"></i> ทดสอบการเชื่อมต่อ
+                                </button>
+                                <button class="btn btn-outline-secondary" id="viewRawDataBtn">
+                                    <i class="fas fa-code me-1"></i> ดูข้อมูลดิบ
+                                </button>
+                                <button class="btn btn-outline-info" id="viewHistoryBtn">
+                                    <i class="fas fa-history me-1"></i> ประวัติการค้นหา
+                                </button>
+                                <button class="btn btn-outline-danger" id="exportDataBtn">
+                                    <i class="fas fa-download me-1"></i> ดาวน์โหลด CSV
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="d-flex flex-wrap gap-2 justify-content-center">
-                <button class="btn btn-outline-primary" id="loadDataBtn">
-                    <i class="fas fa-sync-alt me-1"></i> โหลดข้อมูลใหม่
-                </button>
-                <button class="btn btn-outline-secondary" id="clearSearchBtn">
-                    <i class="fas fa-times me-1"></i> ล้างการค้นหา
-                </button>
-                <button class="btn btn-outline-info" id="testConnectionBtn">
-                    <i class="fas fa-wifi me-1"></i> ทดสอบการเชื่อมต่อ
-                </button>
-                <button class="btn btn-outline-success" id="viewRawDataBtn">
-                    <i class="fas fa-code me-1"></i> ดูข้อมูลดิบ
-                </button>
-                <button class="btn btn-outline-warning" id="viewHistoryBtn">
-                    <i class="fas fa-history me-1"></i> ประวัติการค้นหา
-                </button>
-                <button class="btn btn-outline-danger" id="exportDataBtn">
-                    <i class="fas fa-download me-1"></i> ดาวน์โหลด CSV
-                </button>
             </div>
         </div>
         
@@ -386,13 +421,11 @@
                     <h6><i class="fas fa-cogs me-1"></i> ระบบค้นหาเลขแปลง IN-TECH</h6>
                     <p>โครงการผ่ากอ | พัฒนาเพื่ออำนวยความสะดวกในการค้นหาข้อมูลแปลงเกษตรและโครงข่ายไฟฟ้า</p>
                     <div class="mt-2">
-                        <span class="method-indicator method-active"></span> วิธีโหลดข้อมูลปัจจุบัน: 
-                        <span id="methodDisplay">Published CSV</span>
+                        <i class="fas fa-database me-1"></i> Google Sheet ID: 15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw
                     </div>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p>
-                        <i class="fas fa-database me-1"></i> Google Sheet ID: 15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw<br>
                         <i class="fas fa-clock me-1"></i> อัพเดตล่าสุด: <span id="lastUpdate">-</span><br>
                         <i class="fas fa-code me-1"></i> เวอร์ชัน: 2.0 | พัฒนาด้วย HTML5, Bootstrap 5, jQuery
                     </p>
@@ -401,8 +434,7 @@
             <hr>
             <div class="text-center">
                 <p class="mb-0">
-                    © 2023 ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากอ | 
-                    <i class="fas fa-envelope ms-2 me-1"></i> ติดต่อผู้พัฒนา
+                    © 2023 ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากอ
                 </p>
             </div>
         </footer>
@@ -412,16 +444,224 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <!-- DataTables JS (Optional) -->
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     
     <!-- Main JavaScript Code -->
     <script>
-        // ใส่โค้ด JavaScript ที่ให้มาทั้งหมดที่นี่
-        // หรืออาจจะบันทึกเป็นไฟล์แยกแล้วเรียกด้วย <script src="your-script.js">
-        
-        // ในที่นี้จะใส่โค้ดทั้งหมดที่ให้มา (จากคำถาม)
+        // Google Drive Image Manager
+        const GoogleDriveManager = {
+            cache: new Map(),
+            
+            parseInput(input) {
+                if (!input) return null;
+                
+                if (this.cache.has(input)) {
+                    return this.cache.get(input);
+                }
+                
+                // File ID pattern (33 characters)
+                if (input.match(/^[a-zA-Z0-9_-]{33}$/)) {
+                    const result = {
+                        type: 'fileId',
+                        id: input,
+                        source: 'drive',
+                        urls: this.generateUrls(input)
+                    };
+                    this.cache.set(input, result);
+                    return result;
+                }
+                
+                // Google Drive URL patterns
+                const patterns = [
+                    { regex: /\/d\/([^\/]+)/, name: 'standard' },
+                    { regex: /id=([^&]+)/, name: 'id_param' },
+                    { regex: /\/folders\/([^\/?]+)/, name: 'folder' }
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = input.match(pattern.regex);
+                    if (match) {
+                        const fileId = match[1];
+                        const result = {
+                            type: pattern.name,
+                            id: fileId,
+                            source: 'drive',
+                            urls: this.generateUrls(fileId)
+                        };
+                        this.cache.set(input, result);
+                        return result;
+                    }
+                }
+                
+                // Check if it's a local image file
+                if (input.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)) {
+                    const result = {
+                        type: 'local',
+                        filename: input,
+                        source: 'local',
+                        urls: {
+                            thumbnail: input.startsWith('http') ? input : `สถานะ_Images/${input}`,
+                            full: input.startsWith('http') ? input : `สถานะ_Images/${input}`
+                        }
+                    };
+                    this.cache.set(input, result);
+                    return result;
+                }
+                
+                return null;
+            },
+            
+            generateUrls(fileId) {
+                return {
+                    thumbnail: `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`,
+                    preview: `https://drive.google.com/uc?export=view&id=${fileId}`,
+                    embed: `https://drive.google.com/file/d/${fileId}/preview`,
+                    download: `https://drive.google.com/uc?export=download&id=${fileId}`,
+                    share: `https://drive.google.com/file/d/${fileId}/view`,
+                    fileId: fileId
+                };
+            },
+            
+            createImageElement(imageInfo, options = {}) {
+                const defaults = {
+                    size: 'medium',
+                    showActions: true,
+                    clickable: true,
+                    lazyLoad: true
+                };
+                
+                const config = { ...defaults, ...options };
+                const { urls, type } = imageInfo;
+                
+                if (!urls) return this.createPlaceholder();
+                
+                const sizeMap = {
+                    'small': '80px',
+                    'medium': '120px',
+                    'large': '200px'
+                };
+                
+                const sizeStyle = `width: ${sizeMap[config.size]}; height: ${sizeMap[config.size]};`;
+                
+                let imageHtml = `
+                    <div class="drive-image-wrapper" style="text-align: center;">
+                        <img src="${urls.thumbnail}" 
+                             alt="${type === 'drive' ? 'Google Drive Image' : 'Local Image'}"
+                             class="img-thumbnail preview-image ${config.clickable ? 'clickable' : ''}"
+                             style="${sizeStyle} cursor: ${config.clickable ? 'pointer' : 'default'}; object-fit: cover;"
+                             ${config.lazyLoad ? 'loading="lazy"' : ''}
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/200/cccccc/666666?text=Image+Error'">
+                `;
+                
+                if (config.showActions && type === 'drive') {
+                    imageHtml += `
+                        <div class="drive-actions mt-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="GoogleDriveManager.openInDrive('${urls.fileId}')">
+                                <i class="fab fa-google-drive me-1"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="GoogleDriveManager.downloadImage('${urls.fileId}')">
+                                <i class="fas fa-download me-1"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                imageHtml += `</div>`;
+                
+                return imageHtml;
+            },
+            
+            createPlaceholder() {
+                return `
+                    <div class="image-placeholder" style="text-align: center;">
+                        <div style="width: 80px; height: 80px; background: #f8f9fa; border: 1px dashed #dee2e6; 
+                                    display: inline-flex; align-items: center; justify-content: center; border-radius: 5px;">
+                            <i class="fas fa-image text-muted"></i>
+                        </div>
+                        <div class="text-muted small mt-1">ไม่มีรูปภาพ</div>
+                    </div>
+                `;
+            },
+            
+            openInDrive(fileId) {
+                window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
+            },
+            
+            downloadImage(fileId) {
+                const link = document.createElement('a');
+                link.href = `https://drive.google.com/uc?export=download&id=${fileId}`;
+                link.download = `drive_image_${fileId}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            },
+            
+            showImageModal(imageInfo) {
+                if (!imageInfo || !imageInfo.urls) return;
+                
+                const { urls, type } = imageInfo;
+                
+                const modalHtml = `
+                    <div class="modal fade" id="driveImageModal" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">
+                                        <i class="${type === 'drive' ? 'fab fa-google-drive' : 'fas fa-image'} me-2"></i>
+                                        ${type === 'drive' ? 'Google Drive Image' : 'Local Image'}
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <div class="image-container mb-3">
+                                        <img src="${urls.preview}" 
+                                             alt="Full size image"
+                                             class="img-fluid rounded"
+                                             style="max-height: 70vh;"
+                                             onerror="this.src='https://via.placeholder.com/800x600/cccccc/666666?text=Image+Not+Found'">
+                                    </div>
+                                    ${type === 'drive' ? `
+                                    <div class="drive-info">
+                                        <p class="text-muted mb-2">
+                                            <small>File ID: <code>${urls.fileId}</code></small>
+                                        </p>
+                                        <div class="btn-group">
+                                            <a href="${urls.share}" class="btn btn-primary" target="_blank">
+                                                <i class="fab fa-google-drive me-1"></i> เปิดใน Drive
+                                            </a>
+                                            <a href="${urls.download}" class="btn btn-success" target="_blank" download>
+                                                <i class="fas fa-download me-1"></i> ดาวน์โหลด
+                                            </a>
+                                            <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${urls.share}').then(() => alert('คัดลอกลิงก์เรียบร้อยแล้ว'))">
+                                                <i class="fas fa-copy me-1"></i> คัดลอกลิงก์
+                                            </button>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fas fa-times me-1"></i> ปิด
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                $('body').append(modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('driveImageModal'));
+                modal.show();
+                
+                $('#driveImageModal').on('hidden.bs.modal', function() {
+                    $(this).remove();
+                });
+            }
+        };
+
+        // ============================================
+        // ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากอ
+        // ============================================
+
         const CONFIG = {
             SHEET_ID: '15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw',
             SHEET_NAME: 'สถานะ',
@@ -448,6 +688,9 @@
             
             // Columns for IN-TECH number search
             INTECH_SEARCH_COLUMNS: ['เลขแปลงและยกั', 'เลขโครงขา้', 'ชื่อราคาไฟ'],
+            
+            // Columns for image display
+            IMAGE_COLUMNS: ['รูปถ่ายตอนผ่ากอ', 'รูปภาพผ่ากอ', 'ภาพผ่ากอ', 'รูปภาพ', 'ภาพถ่าย'],
             
             // Pagination
             ITEMS_PER_PAGE: 15,
@@ -533,8 +776,7 @@
                 minute: '2-digit'
             };
             $('#lastUpdate').text(now.toLocaleDateString('th-TH', options));
-            $('#methodDisplay').text(CONFIG.URL_METHODS[currentMethodIndex].name);
-            $('#currentMethod').text('วิธีโหลด: ' + CONFIG.URL_METHODS[currentMethodIndex].name);
+            $('#currentMethod').text(CONFIG.URL_METHODS[currentMethodIndex].name);
         }
 
         // โหลดข้อมูลเริ่มต้น
@@ -958,7 +1200,7 @@
                 
                 headers.forEach(header => {
                     let value = row[header] || '';
-                    let displayValue = formatValue(value);
+                    let displayValue = formatValue(value, header);
                     
                     // ไฮไลต์ถ้าเป็นผลการค้นหา
                     if (currentSearchTerm && currentSearchResults && 
@@ -1077,8 +1319,8 @@
             
             const statsHtml = `
                 <div class="col-md-4">
-                    <div class="stats-card stats-primary">
-                        <div class="stats-icon text-primary">
+                    <div class="stats-card">
+                        <div class="stats-icon">
                             <i class="fas fa-database"></i>
                         </div>
                         <div class="stats-value">${total.toLocaleString()}</div>
@@ -1086,8 +1328,8 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="stats-card stats-success">
-                        <div class="stats-icon text-success">
+                    <div class="stats-card">
+                        <div class="stats-icon">
                             <i class="fas fa-eye"></i>
                         </div>
                         <div class="stats-value">${showing.toLocaleString()}</div>
@@ -1095,8 +1337,8 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="stats-card stats-info">
-                        <div class="stats-icon text-info">
+                    <div class="stats-card">
+                        <div class="stats-icon">
                             <i class="fas fa-columns"></i>
                         </div>
                         <div class="stats-value">${columns}</div>
@@ -1113,6 +1355,7 @@
             
             const headers = Object.keys(allData[0]);
             const intechColumns = CONFIG.INTECH_SEARCH_COLUMNS.filter(col => headers.includes(col));
+            const imageColumns = CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.filter(col => headers.includes(col)) : [];
             
             let html = `
                 <div class="card">
@@ -1126,6 +1369,14 @@
                                 `<span class="badge bg-primary me-1 mb-1">${col}</span>`
                             ).join('')}
                         </div>
+                        ${imageColumns.length > 0 ? `
+                        <p class="mb-2"><strong>คอลัมน์รูปภาพ:</strong></p>
+                        <div class="mb-3">
+                            ${imageColumns.map(col => 
+                                `<span class="badge bg-success me-1 mb-1"><i class="fas fa-image me-1"></i>${col}</span>`
+                            ).join('')}
+                        </div>
+                        ` : ''}
                         <p class="mb-2"><strong>คอลัมน์ทั้งหมด (${headers.length} คอลัมน์):</strong></p>
                         <div>
                             ${headers.map(col => 
@@ -1143,9 +1394,27 @@
             const row = allData[rowIndex];
             const headers = Object.keys(row).filter(h => !h.startsWith('_'));
             
+            // หารูปภาพหลัก (ถ้ามี)
+            let mainImage = null;
+            let mainImageColumn = '';
+            let mainImageFilename = '';
+            
+            if (CONFIG.IMAGE_COLUMNS) {
+                CONFIG.IMAGE_COLUMNS.forEach(col => {
+                    if (row[col] && row[col].trim() !== '' && !mainImage) {
+                        const imageInfo = GoogleDriveManager.parseInput(row[col]);
+                        if (imageInfo) {
+                            mainImage = imageInfo;
+                            mainImageColumn = col;
+                            mainImageFilename = imageInfo.type === 'drive' ? imageInfo.id : imageInfo.filename;
+                        }
+                    }
+                });
+            }
+            
             let detailHtml = `
                 <div class="modal fade" id="detailModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header bg-primary text-white">
                                 <h5 class="modal-title">
@@ -1155,37 +1424,74 @@
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <div class="row">
             `;
+            
+            // แสดงรูปภาพหลักใหญ่ (ถ้ามี)
+            if (mainImage) {
+                detailHtml += `
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-image me-2"></i>รูปภาพผ่ากอ
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        ${GoogleDriveManager.createImageElement(mainImage, {
+                                            size: 'large',
+                                            clickable: true,
+                                            showActions: false
+                                        })}
+                                    </div>
+                                    <p class="mt-2 text-muted"><small>${mainImageFilename}</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            detailHtml += `<div class="row">`;
             
             headers.forEach((key, index) => {
                 const value = row[key] || '-';
                 const isIntechColumn = CONFIG.INTECH_SEARCH_COLUMNS.includes(key);
+                const isImageColumn = CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.includes(key) : false;
+                
+                // ข้ามคอลัมน์รูปภาพหลักถ้าได้แสดงแล้ว
+                if (isImageColumn && key === mainImageColumn) {
+                    return;
+                }
                 
                 detailHtml += `
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label ${isIntechColumn ? 'fw-bold text-primary' : 'text-muted'} small">
+                    <div class="col-md-${isImageColumn ? '12' : '6'} mb-3">
+                        <label class="form-label ${isIntechColumn ? 'fw-bold text-primary' : isImageColumn ? 'fw-bold text-success' : 'text-muted'} small">
                             ${formatHeader(key)}
                             ${isIntechColumn ? '<i class="fas fa-search ms-1 small"></i>' : ''}
+                            ${isImageColumn ? '<i class="fas fa-image ms-1 small"></i>' : ''}
                         </label>
-                        <div class="form-control bg-light" style="min-height: 38px;">
-                            ${formatValue(value)}
+                        <div class="${isImageColumn ? 'image-container p-3 text-center' : 'form-control bg-light'}" style="${isImageColumn ? '' : 'min-height: 38px;'}">
+                            ${formatValue(value, key)}
                         </div>
                     </div>
                 `;
             });
             
             detailHtml += `
-                                </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-1"></i> ปิด
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="copyRowData(${rowIndex})">
-                                    <i class="fas fa-copy me-1"></i> คัดลอกข้อมูล
-                                </button>
-                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i> ปิด
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="copyRowData(${rowIndex})">
+                                <i class="fas fa-copy me-1"></i> คัดลอกข้อมูล
+                            </button>
+                            ${mainImage ? `
+                            <button type="button" class="btn btn-success" onclick="GoogleDriveManager.showImageModal(${JSON.stringify(mainImage)})">
+                                <i class="fas fa-expand me-1"></i> ดูรูปภาพเต็มขนาด
+                            </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -1279,6 +1585,7 @@
                                         <li>จำนวนแถวทั้งหมด: ${allData.length}</li>
                                         <li>จำนวนคอลัมน์: ${headers.length}</li>
                                         <li>คอลัมน์แรก: ${headers[0] || 'ไม่มี'}</li>
+                                        ${CONFIG.IMAGE_COLUMNS ? `<li>คอลัมน์รูปภาพ: ${CONFIG.IMAGE_COLUMNS.filter(col => headers.includes(col)).join(', ')}</li>` : ''}
                                     </ul>
                                 </div>
                             </div>
@@ -1440,7 +1747,7 @@
                     <div class="list-group-item">
                         <div class="d-flex w-100 justify-content-between">
                             <h6 class="mb-1">
-                                <span class="badge ${item.type.includes('IN-TECH') ? 'bg-primary' : 'bg-secondary'} me-2">
+                                <span class="badge ${item.type.includes('IN-TECH') ? 'bg-primary' : item.type.includes('รูปภาพ') ? 'bg-success' : 'bg-secondary'} me-2">
                                     ${item.type}
                                 </span>
                                 "${item.keyword}"
@@ -1545,23 +1852,57 @@
             return header;
         }
 
-        function formatValue(value) {
+        function formatValue(value, columnName = '') {
             if (value === null || value === undefined || value === '') {
                 return '<span class="text-muted">-</span>';
             }
             
             const str = String(value).trim();
             
+            // ตรวจสอบว่าเป็นคอลัมน์รูปภาพ
+            const isImageColumn = CONFIG.IMAGE_COLUMNS ? 
+                CONFIG.IMAGE_COLUMNS.some(col => columnName.includes(col)) : false;
+            
+            if (isImageColumn) {
+                const imageInfo = GoogleDriveManager.parseInput(str);
+                if (imageInfo) {
+                    const imageHtml = GoogleDriveManager.createImageElement(imageInfo, {
+                        size: 'small',
+                        clickable: true,
+                        showActions: false
+                    });
+                    
+                    // Add click handler
+                    return imageHtml.replace(
+                        'class="img-thumbnail preview-image',
+                        `class="img-thumbnail preview-image" onclick="GoogleDriveManager.showImageModal(${JSON.stringify(imageInfo)})"`
+                    );
+                }
+                return GoogleDriveManager.createPlaceholder();
+            }
+            
             // ถ้าเป็นตัวเลข
-            if (!isNaN(str) && str !== '') {
+            if (!isNaN(str) && str !== '' && !str.includes('/')) {
                 const num = Number(str);
                 return num.toLocaleString('th-TH');
             }
             
-            // ถ้าเป็นวันที่ไทย (รูปแบบ dd/mm/yyyy)
+            // ถ้าเป็นวันที่ไทย
             const thaiDateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/;
             if (thaiDateRegex.test(str)) {
                 return str;
+            }
+            
+            // ตรวจสอบว่าเป็น Google Drive URL
+            if (str.includes('drive.google.com') || str.match(/^[a-zA-Z0-9_-]{33}$/)) {
+                const imageInfo = GoogleDriveManager.parseInput(str);
+                if (imageInfo) {
+                    return GoogleDriveManager.createImageElement(imageInfo, {
+                        size: 'small',
+                        clickable: true,
+                        showActions: false
+                    });
+                }
             }
             
             // ข้อความธรรมดา
@@ -1572,6 +1913,7 @@
         console.log('✅ ระบบค้นหาเลขแปลง IN-TECH พร้อมใช้งาน');
         console.log('📊 โครงการ:', CONFIG.PROJECT_NAME);
         console.log('🔗 Sheet ID:', CONFIG.SHEET_ID);
+        console.log('🖼️ คอลัมน์รูปภาพ:', CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.join(', ') : 'ไม่มี');
     </script>
 </body>
 </html>
