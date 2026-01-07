@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ค้นหาเลขที่แปลงจาก Google Sheet</title>
+    <title>ค้นหาเลขที่แปลงแปลงที่ดิน</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -230,34 +230,39 @@
             border-top: 1px solid #e8eaed;
         }
         
-        .instructions {
-            background-color: #f0f7ff;
+        .data-view {
+            background-color: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #1a73e8;
+            margin-top: 20px;
+            display: none;
         }
         
-        .instructions h3 {
-            color: #1a73e8;
-            margin-top: 0;
+        .data-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
         }
         
-        .instructions ol {
-            padding-left: 20px;
+        .data-label {
+            font-weight: 600;
+            color: #5f6368;
+            width: 200px;
+            min-width: 200px;
         }
         
-        .instructions li {
-            margin-bottom: 10px;
+        .data-value {
+            flex: 1;
+            color: #202124;
+            word-break: break-word;
         }
         
-        .url-input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
+        .highlight {
+            background-color: #FFF9C4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
         }
         
         @media (max-width: 768px) {
@@ -273,44 +278,31 @@
                 display: block;
                 overflow-x: auto;
             }
+            
+            .data-row {
+                flex-direction: column;
+            }
+            
+            .data-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1><i class="fas fa-search"></i> ค้นหาเลขที่แปลงที่ดิน</h1>
-        <p class="subtitle">ดึงข้อมูลจาก Google Sheet</p>
+        <h1><i class="fas fa-search"></i> ค้นหาเลขที่แปลงแปลงที่ดิน</h1>
+        <p class="subtitle">ระบบค้นหาเลขที่แปลงจาก Google Sheet</p>
     </header>
     
     <div class="container">
         <div class="search-section">
-            <h2 class="section-title">ขั้นตอนการตั้งค่า</h2>
-            
-            <div class="instructions">
-                <h3><i class="fas fa-info-circle"></i> วิธีเผยแพร่ Google Sheet</h3>
-                <ol>
-                    <li>เปิด Google Sheet ของคุณ</li>
-                    <li>คลิก <strong>File → Share → Publish to web</strong></li>
-                    <li>เลือก <strong>Entire Document</strong> หรือชื่อชีตที่ต้องการ</li>
-                    <li>เลือกรูปแบบเป็น <strong>Web page</strong></li>
-                    <li>คลิก <strong>Publish</strong> และยืนยัน</li>
-                    <li>คัดลอกลิงก์ที่ได้มาใส่ด้านล่าง</li>
-                </ol>
-                
-                <label for="sheetUrl">ลิงก์ Google Sheet ของคุณ:</label>
-                <input type="text" id="sheetUrl" class="url-input" 
-                       placeholder="https://docs.google.com/spreadsheets/d/e/xxxxxxxxxxx/pubhtml" 
-                       value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true">
-                
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="loadDataBtn"><i class="fas fa-download"></i> โหลดข้อมูลจากลิงก์นี้</button>
-                    <button id="testSampleBtn" style="background-color: #34a853;"><i class="fas fa-vial"></i> ทดสอบกับข้อมูลตัวอย่าง</button>
-                </div>
-            </div>
+            <h2 class="section-title"><i class="fas fa-search"></i> ค้นหาเลขที่แปลง</h2>
             
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="ป้อนเลขที่แปลงที่ต้องการค้นหา เช่น 1000114511" autocomplete="off">
-                <button id="searchBtn"><i class="fas fa-search"></i> ค้นหา</button>
+                <button id="searchBtn"><i class="fas fa-search"></i> ค้นหาข้อมูล</button>
                 <button class="clear" id="clearBtn"><i class="fas fa-eraser"></i> ล้าง</button>
             </div>
             
@@ -320,12 +312,12 @@
                     <div class="info-value" id="dataSource">Google Sheets</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">จำนวนข้อมูลทั้งหมด</div>
-                    <div class="info-value" id="totalRecords">0 รายการ</div>
+                    <div class="info-label">สถานะระบบ</div>
+                    <div class="info-value" id="dataStatus">พร้อมใช้งาน</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label">สถานะ</div>
-                    <div class="info-value" id="dataStatus">รอการโหลดข้อมูล</div>
+                    <div class="info-label">อัปเดตล่าสุด</div>
+                    <div class="info-value" id="lastUpdated">-</div>
                 </div>
             </div>
             
@@ -334,11 +326,12 @@
         </div>
         
         <div class="results-section">
-            <h2 class="section-title">ผลการค้นหา</h2>
+            <h2 class="section-title"><i class="fas fa-file-alt"></i> ผลการค้นหา</h2>
             <div id="resultsContainer">
                 <div class="no-data" id="initialMessage">
-                    <i class="fas fa-file-alt"></i>
+                    <i class="fas fa-search"></i>
                     <p>กรุณาป้อนเลขที่แปลงที่ต้องการค้นหา</p>
+                    <p style="margin-top: 10px; font-size: 0.9rem;">ระบบจะดึงข้อมูลจาก Google Sheet อัตโนมัติ</p>
                 </div>
                 
                 <div class="loading" id="loadingIndicator" style="display: none;">
@@ -346,119 +339,103 @@
                     <p>กำลังค้นหาข้อมูล...</p>
                 </div>
                 
+                <!-- ข้อมูลที่พบจะแสดงที่นี่ -->
                 <div id="searchResults"></div>
             </div>
         </div>
     </div>
     
     <footer>
-        <p>ข้อมูลจาก Google Sheet | อัปเดตล่าสุด: <span id="lastUpdated">-</span></p>
-        <p>พัฒนาโดย GitHub Project</p>
+        <p>ระบบค้นหาเลขที่แปลงแปลงที่ดิน | อัปเดตล่าสุด: <span id="footerUpdated">-</span></p>
+        <p>พัฒนาโดย GitHub Project | แหล่งข้อมูล: Google Sheet</p>
     </footer>
 
     <script>
-        // ข้อมูลจาก Google Sheet ที่ดึงมา
+        // ข้อมูลจาก Google Sheet
         let sheetData = [];
         let lastUpdated = '-';
+        
+        // URL ของ Google Sheet ของคุณ
+        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true';
         
         // DOM Elements
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const clearBtn = document.getElementById('clearBtn');
-        const loadDataBtn = document.getElementById('loadDataBtn');
-        const testSampleBtn = document.getElementById('testSampleBtn');
-        const sheetUrlInput = document.getElementById('sheetUrl');
         const resultsContainer = document.getElementById('searchResults');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const initialMessage = document.getElementById('initialMessage');
-        const totalRecords = document.getElementById('totalRecords');
         const dataStatus = document.getElementById('dataStatus');
         const dataSource = document.getElementById('dataSource');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
         const lastUpdatedElement = document.getElementById('lastUpdated');
+        const footerUpdated = document.getElementById('footerUpdated');
         
-        // โหลดข้อมูลจาก Google Sheet โดยใช้ลิงก์ที่ผู้ใช้กรอก
-        async function loadDataFromSheet() {
+        // โหลดข้อมูลจาก Google Sheet
+        async function loadGoogleSheetData() {
             try {
-                const sheetUrl = sheetUrlInput.value.trim();
-                
-                if (!sheetUrl) {
-                    showError('กรุณากรอกลิงก์ Google Sheet');
-                    return;
-                }
-                
+                console.log('กำลังโหลดข้อมูลจาก Google Sheet...');
                 dataStatus.textContent = 'กำลังโหลดข้อมูล...';
-                dataSource.textContent = 'Google Sheets (กำลังโหลด)';
-                showLoading(true);
                 
-                console.log('Loading data from:', sheetUrl);
-                
-                // ใช้วิธีดึงข้อมูลผ่าน CORS proxy
+                // ใช้ CORS proxy เพื่อแก้ปัญหา CORS
                 const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const encodedUrl = encodeURIComponent(sheetUrl);
-                const response = await fetch(proxyUrl + encodedUrl);
+                const response = await fetch(proxyUrl + encodeURIComponent(GOOGLE_SHEET_URL));
                 
                 if (!response.ok) {
-                    throw new Error(`ไม่สามารถดึงข้อมูลได้: ${response.status} ${response.statusText}`);
+                    throw new Error(`ไม่สามารถดึงข้อมูลได้: ${response.status}`);
                 }
                 
                 const htmlText = await response.text();
-                await parseGoogleSheetHTML(htmlText);
+                await parseGoogleSheetData(htmlText);
                 
-                showSuccess('โหลดข้อมูลสำเร็จจาก Google Sheet!');
-                dataSource.textContent = 'Google Sheets';
+                console.log('โหลดข้อมูลสำเร็จ:', sheetData.length, 'รายการ');
+                showSuccess('โหลดข้อมูลจาก Google Sheet สำเร็จ!');
+                dataStatus.textContent = 'พร้อมใช้งาน';
                 
             } catch (error) {
-                console.error('Error loading data:', error);
-                showError(`ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้: ${error.message}`);
-                dataStatus.textContent = 'เกิดข้อผิดพลาด';
-                dataSource.textContent = 'Google Sheets (ล้มเหลว)';
+                console.error('Error loading Google Sheet:', error);
                 
-                // แนะนำให้ใช้ข้อมูลตัวอย่าง
-                setTimeout(() => {
-                    showError('ระบบขอแนะนำให้ใช้ข้อมูลตัวอย่างก่อน โดยกดปุ่ม "ทดสอบกับข้อมูลตัวอย่าง"');
-                }, 1000);
-            } finally {
-                showLoading(false);
+                // ถ้าไม่สามารถโหลดได้ ให้ใช้ข้อมูลตัวอย่าง
+                useSampleData();
+                showError(`ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้: ${error.message}. กำลังใช้ข้อมูลตัวอย่าง`);
+                dataStatus.textContent = 'ใช้ข้อมูลตัวอย่าง';
             }
         }
         
-        // แปลง HTML จาก Google Sheet เป็นข้อมูล
-        async function parseGoogleSheetHTML(htmlText) {
+        // แปลงข้อมูลจาก HTML ของ Google Sheet
+        async function parseGoogleSheetData(htmlText) {
             try {
-                // สร้าง DOM จำลองเพื่อแยกข้อมูลจาก HTML
+                // สร้าง DOM จำลอง
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
                 
                 // หาตารางในเอกสาร
                 const table = doc.querySelector('table');
                 if (!table) {
-                    throw new Error('ไม่พบตารางข้อมูลใน Google Sheet');
+                    throw new Error('ไม่พบตารางใน Google Sheet');
                 }
                 
                 // ดึงแถวทั้งหมด
                 const rows = table.querySelectorAll('tr');
                 if (rows.length < 2) {
-                    throw new Error('ตารางไม่มีข้อมูลเพียงพอ');
+                    throw new Error('ไม่พบข้อมูลใน Google Sheet');
                 }
                 
-                // ดึงหัวตาราง (แถวแรก)
-                const headerCells = rows[0].querySelectorAll('td, th');
+                // ดึงหัวตาราง
+                const headerRow = rows[0];
+                const headerCells = headerRow.querySelectorAll('td, th');
                 const headers = Array.from(headerCells).map(cell => 
                     cell.textContent.trim() || `คอลัมน์ ${Array.from(headerCells).indexOf(cell) + 1}`
                 );
                 
-                console.log('Found headers:', headers);
-                
-                // สร้างข้อมูลจากแถวที่เหลือ
+                // ดึงข้อมูล
                 sheetData = [];
                 
                 for (let i = 1; i < rows.length; i++) {
                     const cells = rows[i].querySelectorAll('td, th');
                     const rowData = {};
                     
-                    // สร้าง object จาก headers และ cells
                     for (let j = 0; j < headers.length; j++) {
                         if (j < cells.length) {
                             rowData[headers[j]] = cells[j].textContent.trim();
@@ -467,58 +444,105 @@
                         }
                     }
                     
-                    // เพิ่มข้อมูลเฉพาะถ้ามีค่าในแถว
+                    // เพิ่มเฉพาะแถวที่มีข้อมูล
                     const hasData = Object.values(rowData).some(value => value !== '');
                     if (hasData) {
                         sheetData.push(rowData);
                     }
                 }
                 
-                // อัปเดต UI
-                updateUIAfterLoad('Google Sheets');
+                // อัปเดตข้อมูลเวลา
+                updateLastUpdated();
                 
-                console.log('Data loaded successfully:', sheetData.length, 'rows');
-                if (sheetData.length > 0) {
-                    console.log('First row:', sheetData[0]);
-                }
+                console.log('ข้อมูลที่โหลดได้:', sheetData);
                 
             } catch (error) {
-                console.error('Error parsing HTML:', error);
+                console.error('Error parsing Google Sheet:', error);
                 throw error;
             }
         }
         
-        // ใช้ข้อมูลตัวอย่าง
+        // ใช้ข้อมูลตัวอย่าง (กรณีโหลด Google Sheet ไม่ได้)
         function useSampleData() {
-            // ข้อมูลตัวอย่างที่มีเลขที่แปลง 1000114511 ตามที่คุณค้นหา
             sheetData = [
-                {'เลขที่แปลง': '1000114511', 'ชื่อเจ้าของ': 'สมชาย ใจดี', 'พื้นที่': '2 ไร่', 'จังหวัด': 'เชียงใหม่', 'อำเภอ': 'เมือง', 'ตำบล': 'สุเทพ', 'หมายเหตุ': 'แปลงสวนมะม่วง'},
-                {'เลขที่แปลง': '1000223344', 'ชื่อเจ้าของ': 'สุนิดา รักธรรม', 'พื้นที่': '1 ไร่ 2 งาน', 'จังหวัด': 'ขอนแก่น', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'ที่อยู่อาศัย'},
-                {'เลขที่แปลง': '1000334455', 'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา', 'พื้นที่': '3 ไร่', 'จังหวัด': 'นครราชสีมา', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'แปลงนา'},
-                {'เลขที่แปลง': '1000445566', 'ชื่อเจ้าของ': 'อรุณี สุขใจ', 'พื้นที่': '0.5 ไร่', 'จังหวัด': 'เชียงราย', 'อำเภอ': 'เมือง', 'ตำบล': 'รอบเวียง', 'หมายเหตุ': 'ที่ดินว่าง'},
-                {'เลขที่แปลง': '1000556677', 'ชื่อเจ้าของ': 'วิรัช เมืองดี', 'พื้นที่': '5 ไร่', 'จังหวัด': 'สงขลา', 'อำเภอ': 'หาดใหญ่', 'ตำบล': 'หาดใหญ่', 'หมายเหตุ': 'สวนยางพารา'},
-                {'เลขที่แปลง': '1000667788', 'ชื่อเจ้าของ': 'พงศกร ทรัพย์สิน', 'พื้นที่': '2.5 ไร่', 'จังหวัด': 'กรุงเทพฯ', 'อำเภอ': 'คลองสาน', 'ตำบล': 'คลองสาน', 'หมายเหตุ': 'ที่ดินริมแม่น้ำ'},
-                {'เลขที่แปลง': '1000778899', 'ชื่อเจ้าของ': 'รัตนา ศรีสุข', 'พื้นที่': '4 ไร่', 'จังหวัด': 'เพชรบูรณ์', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'สวนลำไย'}
+                {
+                    'เลขที่แปลง': '1000114511',
+                    'ชื่อเจ้าของ': 'สมชาย ใจดี',
+                    'ที่อยู่': '123 หมู่ 4 ต.สุเทพ อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '2 ไร่',
+                    'ประเภทที่ดิน': 'ที่ดินทำการเกษตร',
+                    'โฉนดที่ดินเลขที่': 'นส.12345',
+                    'อำเภอ': 'เมือง',
+                    'จังหวัด': 'เชียงใหม่',
+                    'หมายเหตุ': 'แปลงสวนมะม่วง'
+                },
+                {
+                    'เลขที่แปลง': '2000223344',
+                    'ชื่อเจ้าของ': 'สุนิดา รักธรรม',
+                    'ที่อยู่': '456 หมู่ 2 ต.ในเมือง อ.เมือง จ.ขอนแก่น',
+                    'พื้นที่': '1 ไร่ 2 งาน',
+                    'ประเภทที่ดิน': 'ที่อยู่อาศัย',
+                    'โฉนดที่ดินเลขที่': 'นส.67890',
+                    'อำเภอ': 'เมือง',
+                    'จังหวัด': 'ขอนแก่น',
+                    'หมายเหตุ': 'บ้านพักอาศัย'
+                },
+                {
+                    'เลขที่แปลง': '3000334455',
+                    'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา',
+                    'ที่อยู่': '789 หมู่ 5 ต.ในเมือง อ.เมือง จ.นครราชสีมา',
+                    'พื้นที่': '3 ไร่',
+                    'ประเภทที่ดิน': 'ที่ดินทำการเกษตร',
+                    'โฉนดที่ดินเลขที่': 'นส.11223',
+                    'อำเภอ': 'เมือง',
+                    'จังหวัด': 'นครราชสีมา',
+                    'หมายเหตุ': 'แปลงนาข้าว'
+                },
+                {
+                    'เลขที่แปลง': '4000445566',
+                    'ชื่อเจ้าของ': 'อรุณี สุขใจ',
+                    'ที่อยู่': '321 หมู่ 3 ต.รอบเวียง อ.เมือง จ.เชียงราย',
+                    'พื้นที่': '0.5 ไร่',
+                    'ประเภทที่ดิน': 'ที่ดินว่างเปล่า',
+                    'โฉนดที่ดินเลขที่': 'นส.44556',
+                    'อำเภอ': 'เมือง',
+                    'จังหวัด': 'เชียงราย',
+                    'หมายเหตุ': 'เตรียมสร้างบ้าน'
+                },
+                {
+                    'เลขที่แปลง': '5000556677',
+                    'ชื่อเจ้าของ': 'วิรัช เมืองดี',
+                    'ที่อยู่': '654 หมู่ 1 ต.หาดใหญ่ อ.หาดใหญ่ จ.สงขลา',
+                    'พื้นที่': '5 ไร่',
+                    'ประเภทที่ดิน': 'สวนยางพารา',
+                    'โฉนดที่ดินเลขที่': 'นส.77889',
+                    'อำเภอ': 'หาดใหญ่',
+                    'จังหวัด': 'สงขลา',
+                    'หมายเหตุ': 'สวนยางพาราเก่า'
+                }
             ];
             
-            updateUIAfterLoad('ข้อมูลตัวอย่าง');
-            showSuccess('ใช้ข้อมูลตัวอย่างสำเร็จ! ลองค้นหาเลขที่แปลง "1000114511"');
-            
-            // เติมเลขที่แปลงในช่องค้นหาเพื่อให้ทดสอบง่าย
-            searchInput.value = '1000114511';
+            updateLastUpdated();
+            console.log('ใช้ข้อมูลตัวอย่าง:', sheetData);
         }
         
-        // อัปเดต UI หลังโหลดข้อมูล
-        function updateUIAfterLoad(source) {
-            totalRecords.textContent = `${sheetData.length} รายการ`;
-            dataStatus.textContent = 'โหลดข้อมูลสำเร็จ';
-            dataSource.textContent = source;
-            lastUpdated = new Date().toLocaleString('th-TH');
+        // อัปเดตเวลาล่าสุด
+        function updateLastUpdated() {
+            lastUpdated = new Date().toLocaleString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
             lastUpdatedElement.textContent = lastUpdated;
+            footerUpdated.textContent = lastUpdated;
         }
         
         // ค้นหาข้อมูล
-        function searchData() {
+        async function searchData() {
             const searchTerm = searchInput.value.trim();
             
             if (!searchTerm) {
@@ -526,47 +550,48 @@
                 return;
             }
             
+            // ถ้ายังไม่มีข้อมูล ให้โหลดข้อมูลก่อน
             if (sheetData.length === 0) {
-                showError('ยังไม่มีข้อมูล กรุณาโหลดข้อมูลก่อน');
-                return;
+                showLoading(true, 'กำลังโหลดข้อมูล...');
+                await loadGoogleSheetData();
+                showLoading(false);
             }
             
-            // ซ่อนข้อความเริ่มต้นและแสดงตัวโหลด
-            initialMessage.style.display = 'none';
-            loadingIndicator.style.display = 'block';
-            resultsContainer.innerHTML = '';
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
+            // ค้นหาข้อมูล
+            showLoading(true, 'กำลังค้นหาข้อมูล...');
             
-            // ล่าช้าเล็กน้อยเพื่อแสดงตัวโหลด
             setTimeout(() => {
                 const results = performSearch(searchTerm);
-                displayResults(results, searchTerm);
-                loadingIndicator.style.display = 'none';
-            }, 300);
+                displaySearchResults(results, searchTerm);
+                showLoading(false);
+            }, 500);
         }
         
-        // ฟังก์ชันค้นหาจริง
+        // ค้นหาจริงในข้อมูล
         function performSearch(searchTerm) {
             if (sheetData.length === 0) return [];
             
-            // ค้นหาในคอลัมน์ต่างๆ ที่อาจมีเลขที่แปลง
-            const possibleColumns = Object.keys(sheetData[0]).filter(key => 
-                key.toLowerCase().includes('แปลง') || 
-                key.toLowerCase().includes('lot') || 
-                key.toLowerCase().includes('ที่ดิน') ||
-                key.toLowerCase().includes('เลขที่') ||
-                key.toLowerCase().includes('no') ||
-                key.toLowerCase().includes('number') ||
-                key.toLowerCase().includes('id') ||
-                key.toLowerCase().includes('รหัส')
+            // ค้นหาจากคอลัมน์ที่เกี่ยวข้องกับเลขที่แปลง
+            const lotNumberColumns = [
+                'เลขที่แปลง', 'แปลงที่', 'แปลง', 'Lot', 'lot', 'แปลงที่ดิน', 
+                'ที่ดินแปลงที่', 'เลขแปลง', 'รหัสแปลง', 'หมายเลขแปลง'
+            ];
+            
+            // หาคอลัมน์ที่มีอยู่ในข้อมูล
+            const existingColumns = Object.keys(sheetData[0]);
+            const searchColumns = lotNumberColumns.filter(col => 
+                existingColumns.some(existing => 
+                    existing.toLowerCase().includes(col.toLowerCase()) || 
+                    col.toLowerCase().includes(existing.toLowerCase())
+                )
             );
             
-            // หากไม่มีคอลัมน์ที่เหมาะสม ให้ค้นหาทุกคอลัมน์
-            const searchColumns = possibleColumns.length > 0 ? possibleColumns : Object.keys(sheetData[0]);
+            // ถ้าไม่เจอคอลัมน์ที่ตรง ให้ค้นหาทุกคอลัมน์
+            const columnsToSearch = searchColumns.length > 0 ? searchColumns : existingColumns;
             
+            // ค้นหา
             return sheetData.filter(row => {
-                for (const column of searchColumns) {
+                for (const column of columnsToSearch) {
                     if (row[column] && row[column].toString().toLowerCase().includes(searchTerm.toLowerCase())) {
                         return true;
                     }
@@ -576,64 +601,118 @@
         }
         
         // แสดงผลการค้นหา
-        function displayResults(results, searchTerm) {
+        function displaySearchResults(results, searchTerm) {
             resultsContainer.innerHTML = '';
             
             if (results.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="no-data">
                         <i class="fas fa-search"></i>
-                        <p>ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"</p>
-                        <p style="margin-top: 10px; font-size: 0.9rem;">ลองค้นหาใหม่ด้วยคำที่แตกต่าง</p>
+                        <h3>ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"</h3>
+                        <p>กรุณาตรวจสอบเลขที่แปลงและลองอีกครั้ง</p>
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: #5f6368;">
+                            ข้อมูลทั้งหมดในระบบ: ${sheetData.length} รายการ
+                        </p>
                     </div>
                 `;
                 return;
             }
             
-            // สร้างตารางผลลัพธ์
-            const table = document.createElement('table');
-            
-            // หัวตาราง
-            const thead = document.createElement('thead');
-            const headers = Object.keys(results[0]);
-            
-            let headerRow = '<tr>';
-            headers.forEach(header => {
-                headerRow += `<th>${header}</th>`;
-            });
-            headerRow += '</tr>';
-            thead.innerHTML = headerRow;
-            table.appendChild(thead);
-            
-            // แถวข้อมูล
-            const tbody = document.createElement('tbody');
-            
-            results.forEach(row => {
-                let rowHtml = '<tr>';
-                headers.forEach(header => {
-                    const cellValue = row[header] || '-';
-                    // เน้นคำที่ค้นหา
-                    const highlightedValue = cellValue.toString().replace(
-                        new RegExp(searchTerm, 'gi'), 
-                        match => `<span style="background-color: #FFF9C4; font-weight: bold;">${match}</span>`
-                    );
-                    rowHtml += `<td>${highlightedValue}</td>`;
+            // แสดงข้อมูลที่พบ
+            results.forEach((result, index) => {
+                const resultElement = document.createElement('div');
+                resultElement.className = 'data-view';
+                resultElement.style.display = 'block';
+                
+                let html = `
+                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #1a73e8;">
+                        <h3 style="color: #1a73e8;">
+                            <i class="fas fa-map-marker-alt"></i> 
+                            ผลการค้นหาที่ ${index + 1}: พบเลขที่แปลง "${highlightText(result['เลขที่แปลง'] || 'ไม่มีข้อมูล', searchTerm)}"
+                        </h3>
+                        <p style="color: #5f6368; margin-top: 5px;">
+                            <i class="far fa-calendar-alt"></i> ค้นพบเมื่อ: ${new Date().toLocaleString('th-TH')}
+                        </p>
+                    </div>
+                `;
+                
+                // แสดงข้อมูลทั้งหมดในผลลัพธ์
+                Object.keys(result).forEach(key => {
+                    const value = result[key] || 'ไม่มีข้อมูล';
+                    const highlightedValue = highlightText(value, searchTerm);
+                    
+                    html += `
+                        <div class="data-row">
+                            <div class="data-label">${key}:</div>
+                            <div class="data-value">${highlightedValue}</div>
+                        </div>
+                    `;
                 });
-                rowHtml += '</tr>';
-                tbody.innerHTML += rowHtml;
+                
+                resultElement.innerHTML = html;
+                resultsContainer.appendChild(resultElement);
             });
             
-            table.appendChild(tbody);
-            resultsContainer.appendChild(table);
-            
-            // เพิ่มข้อมูลสรุป
+            // แสดงสรุปผล
             const summary = document.createElement('div');
-            summary.style.marginTop = '15px';
-            summary.style.padding = '10px';
+            summary.style.marginTop = '20px';
+            summary.style.padding = '15px';
             summary.style.backgroundColor = '#E8F0FE';
             summary.style.borderRadius = '8px';
-            summary.innerHTML = `<strong>พบทั้งหมด ${results.length} รายการ</strong> ที่ตรงกับ "${searchTerm}"`;
+            summary.innerHTML = `
+                <h4 style="margin: 0 0 10px 0; color: #1a73e8;">
+                    <i class="fas fa-chart-bar"></i> สรุปผลการค้นหา
+                </h4>
+                <p style="margin: 0;">
+                    <strong>พบทั้งหมด ${results.length} รายการ</strong> ที่ตรงกับ "${searchTerm}"
+                    จากข้อมูลทั้งหมด ${sheetData.length} รายการ
+                </p>
+            `;
+            
             resultsContainer.appendChild(summary);
+        }
+        
+        // เน้นข้อความที่ค้นหา
+        function highlightText(text, searchTerm) {
+            if (!searchTerm || !text) return text;
+            
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.toString().replace(regex, '<span class="highlight">$1</span>');
+        }
+        
+        // แสดงสถานะการโหลด
+        function showLoading(isLoading, message = 'กำลังค้นหาข้อมูล...') {
+            if (isLoading) {
+                initialMessage.style.display = 'none';
+                loadingIndicator.style.display = 'block';
+                loadingIndicator.querySelector('p').textContent = message;
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังค้นหา...';
+            } else {
+                loadingIndicator.style.display = 'none';
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<i class="fas fa-search"></i> ค้นหาข้อมูล';
+            }
+        }
+        
+        // แสดงข้อความข้อผิดพลาด
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // แสดงข้อความสำเร็จ
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
         }
         
         // ล้างการค้นหา
@@ -645,47 +724,26 @@
             successMessage.style.display = 'none';
         }
         
-        // แสดงข้อผิดพลาด
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
+        // เริ่มต้นโหลดข้อมูลเมื่อเปิดหน้า
+        async function initialize() {
+            console.log('กำลังเริ่มต้นระบบ...');
             
-            // อัตโนมัติซ่อนข้อความผิดพลาดหลังจาก 5 วินาที
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
-        
-        // แสดงข้อความสำเร็จ
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
+            // โหลดข้อมูลจาก Google Sheet
+            await loadGoogleSheetData();
             
-            // อัตโนมัติซ่อนข้อความสำเร็จหลังจาก 3 วินาที
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
+            // เตรียมฟังก์ชันค้นหาให้ทำงานจาก console
+            window.searchByPlotNumber = function(plotNumber) {
+                searchInput.value = plotNumber;
+                searchData();
+            };
+            
+            console.log('ระบบพร้อมใช้งานแล้ว!');
+            console.log('ใช้คำสั่ง searchByPlotNumber("1000114511") เพื่อค้นหาเลขที่แปลง');
         }
         
-        // แสดง/ซ่อนสถานะกำลังโหลด
-        function showLoading(isLoading) {
-            if (isLoading) {
-                dataStatus.textContent = 'กำลังโหลดข้อมูล...';
-                loadDataBtn.disabled = true;
-                loadDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังโหลด...';
-            } else {
-                loadDataBtn.disabled = false;
-                loadDataBtn.innerHTML = '<i class="fas fa-download"></i> โหลดข้อมูลจากลิงก์นี้';
-            }
-        }
-        
-        // อีเวนต์ listeners
+        // Event Listeners
         searchBtn.addEventListener('click', searchData);
         clearBtn.addEventListener('click', clearSearch);
-        loadDataBtn.addEventListener('click', loadDataFromSheet);
-        testSampleBtn.addEventListener('click', useSampleData);
         
         searchInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
@@ -693,19 +751,8 @@
             }
         });
         
-        // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
-        document.addEventListener('DOMContentLoaded', function() {
-            // ใช้ข้อมูลตัวอย่างเริ่มต้น
-            useSampleData();
-            
-            console.log('ระบบค้นหาเลขที่แปลงพร้อมใช้งาน');
-            console.log('ตัวอย่างคำสั่ง: searchData("1000114511") สำหรับค้นหาเลขที่แปลง');
-            
-            // ทำให้ฟังก์ชันพร้อมใช้งานใน console
-            window.searchData = searchData;
-            window.loadDataFromSheet = loadDataFromSheet;
-            window.clearSearch = clearSearch;
-        });
+        // เริ่มต้นระบบเมื่อโหลดหน้าเว็บเสร็จ
+        document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
 </html>
