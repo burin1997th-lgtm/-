@@ -1,6 +1,6 @@
 // Configuration
 const CONFIG = {
-    GOOGLE_APPS_SCRIPT_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true',
+    GOOGLE_APPS_SCRIPT_URL: 'https://docs.google.com/spreadsheets/d/15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw/edit',
     SHEET_ID: '15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw',
     SHEET_NAME: 'สถานะ',
     ITEMS_PER_PAGE: 50,
