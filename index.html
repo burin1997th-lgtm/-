@@ -22,7 +22,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background-color: white;
             border-radius: 12px;
@@ -211,6 +211,52 @@
             color: #546e7a;
         }
         
+        .summary-section {
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .summary-title {
+            color: #2e7d32;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .zone-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .zone-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 180px;
+        }
+        
+        .zone-name {
+            font-weight: 600;
+            color: #1b5e20;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .zone-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #43a047;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -223,6 +269,7 @@
             text-align: left;
             padding: 15px;
             border-bottom: 2px solid #c5cae9;
+            white-space: nowrap;
         }
         
         td {
@@ -246,6 +293,21 @@
             font-weight: 600;
             padding: 2px 5px;
             border-radius: 3px;
+        }
+        
+        .col-zone {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .col-number {
+            font-family: monospace;
+            font-size: 15px;
+            letter-spacing: 0.5px;
         }
         
         .loading {
@@ -293,6 +355,16 @@
             margin-top: 20px;
         }
         
+        @media (max-width: 992px) {
+            .zone-summary {
+                flex-direction: column;
+            }
+            
+            .zone-item {
+                width: 100%;
+            }
+        }
+        
         @media (max-width: 768px) {
             .search-row {
                 flex-direction: column;
@@ -319,6 +391,12 @@
             th, td {
                 padding: 10px 5px;
                 font-size: 14px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
             }
         }
     </style>
@@ -350,7 +428,7 @@
                             <option value="2">คอลัมน์ 2</option>
                             <option value="3">คอลัมน์ 3</option>
                             <option value="4">คอลัมน์ 4</option>
-                            <option value="5">คอลัมน์ 5</option>
+                            <option value="5">คอลัมน์ 5 (เขต)</option>
                             <option value="6">คอลัมน์ 6</option>
                             <option value="7">คอลัมน์ 7</option>
                             <option value="8">คอลัมน์ 8</option>
@@ -359,7 +437,7 @@
                     </div>
                     
                     <div class="column-info">
-                        <i class="fas fa-info-circle"></i> คุณต้องการค้นหาจาก <strong>คอลัมน์ที่ 9</strong> ซึ่งตั้งค่าไว้เป็นค่าเริ่มต้น
+                        <i class="fas fa-info-circle"></i> <strong>คอลัมน์ที่ 5</strong> คือข้อมูล "เขต" และ <strong>คอลัมน์ที่ 10</strong> คือข้อมูลตัวเลข (ไม่มีตัวคั่นระหว่างตัวเลข)
                     </div>
                 </div>
                 
@@ -391,6 +469,10 @@
                     <div class="results-count" id="resultsCount">พบ 0 รายการ</div>
                 </div>
                 
+                <div id="summaryContainer">
+                    <!-- สรุปข้อมูลเขตจะแสดงที่นี่ -->
+                </div>
+                
                 <div id="resultsTableContainer">
                     <!-- ผลลัพธ์จะแสดงที่นี่ -->
                 </div>
@@ -403,14 +485,75 @@
     </div>
 
     <script>
-        // ข้อมูลตัวอย่างจาก Google Sheet (แทนที่ด้วยการดึงข้อมูลจริงจาก Google Sheets API)
+        // ข้อมูลตัวอย่างจาก Google Sheet (คอลัมน์ที่ 5 คือเขต, คอลัมน์ที่ 10 คือตัวเลขไม่มีตัวคั่น)
         const mockData = [
-            ["1000114511", "ข้อมูล A", "ข้อมูล B", "ข้อมูล C", "ข้อมูล D", "ข้อมูล E", "ข้อมูล F", "ข้อมูล G", "ข้อมูล H", "ข้อมูล I (คอลัมน์ 9)"],
-            ["4000153585", "ข้อมูล A2", "ข้อมูล B2", "ข้อมูล C2", "ข้อมูล D2", "ข้อมูล E2", "ข้อมูล F2", "ข้อมูล G2", "ข้อมูล H2", "ข้อมูล I2 (คอลัมน์ 9)"],
-            ["1002388145", "ข้อมูล A3", "ข้อมูล B3", "ข้อมูล C3", "ข้อมูล D3", "ข้อมูล E3", "ข้อมูล F3", "ข้อมูล G3", "ข้อมูล H3", "ข้อมูล I3 (คอลัมน์ 9)"],
-            ["5000123456", "ข้อมูล A4", "ข้อมูล B4", "ข้อมูล C4", "ข้อมูล D4", "ข้อมูล E4", "ข้อมูล F4", "ข้อมูล G4", "ข้อมูล H4", "ข้อมูล I4 (คอลัมน์ 9)"],
-            ["6000789123", "ข้อมูล A5", "ข้อมูล B5", "ข้อมูล C5", "ข้อมูล D5", "ข้อมูล E5", "ข้อมูล F5", "ข้อมูล G5", "ข้อมูล H5", "ข้อมูล I5 (คอลัมน์ 9)"],
+            ["1000114511", "ข้อมูล A", "ข้อมูล B", "ข้อมูล C", "เขตเหนือ", "ข้อมูล E", "ข้อมูล F", "ข้อมูล G", "ข้อมูล H", "ข้อมูล I (คอลัมน์ 9)", "1234567890"],
+            ["4000153585", "ข้อมูล A2", "ข้อมูล B2", "ข้อมูล C2", "เขตกลาง", "ข้อมูล E2", "ข้อมูล F2", "ข้อมูล G2", "ข้อมูล H2", "ข้อมูล I2 (คอลัมน์ 9)", "9876543210"],
+            ["1002388145", "ข้อมูล A3", "ข้อมูล B3", "ข้อมูล C3", "เขตเหนือ", "ข้อมูล E3", "ข้อมูล F3", "ข้อมูล G3", "ข้อมูล H3", "ข้อมูล I3 (คอลัมน์ 9)", "4561237890"],
+            ["5000123456", "ข้อมูล A4", "ข้อมูล B4", "ข้อมูล C4", "เขตใต้", "ข้อมูล E4", "ข้อมูล F4", "ข้อมูล G4", "ข้อมูล H4", "ข้อมูล I4 (คอลัมน์ 9)", "7890123456"],
+            ["6000789123", "ข้อมูล A5", "ข้อมูล B5", "ข้อมูล C5", "เขตกลาง", "ข้อมูล E5", "ข้อมูล F5", "ข้อมูล G5", "ข้อมูล H5", "ข้อมูล I5 (คอลัมน์ 9)", "3216549870"],
+            ["7000123987", "ข้อมูล A6", "ข้อมูล B6", "ข้อมูล C6", "เขตตะวันออก", "ข้อมูล E6", "ข้อมูล F6", "ข้อมูล G6", "ข้อมูล H6", "ข้อมูล I6 (คอลัมน์ 9)", "6549871230"],
+            ["8000456123", "ข้อมูล A7", "ข้อมูล B7", "ข้อมูล C7", "เขตเหนือ", "ข้อมูล E7", "ข้อมูล F7", "ข้อมูล G7", "ข้อมูล H7", "ข้อมูล I7 (คอลัมน์ 9)", "1472583690"],
+            ["9000789456", "ข้อมูล A8", "ข้อมูล B8", "ข้อมูล C8", "เขตใต้", "ข้อมูล E8", "ข้อมูล F8", "ข้อมูล G8", "ข้อมูล H8", "ข้อมูล I8 (คอลัมน์ 9)", "2583691470"],
         ];
+        
+        // ฟังก์ชันล้างตัวคั่นในคอลัมน์ที่ 10 (สำหรับข้อมูลจริง)
+        function cleanColumn10Data(data) {
+            return data.map(row => {
+                if (row.length > 10 && row[10]) {
+                    // ลบตัวคั่นทั้งหมด (เช่น เครื่องหมายจุลภาค, ขีดกลาง, ช่องว่าง)
+                    row[10] = row[10].toString().replace(/[,.\-\s]/g, '');
+                }
+                return row;
+            });
+        }
+        
+        // ฟังก์ชันสร้างสรุปข้อมูลเขต
+        function createZoneSummary(data) {
+            const zoneCounts = {};
+            
+            data.forEach(row => {
+                const zone = row[4] || 'ไม่ระบุเขต';
+                zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
+            });
+            
+            return zoneCounts;
+        }
+        
+        // ฟังก์ชันแสดงสรุปข้อมูลเขต
+        function displayZoneSummary(zoneCounts) {
+            const summaryContainer = document.getElementById('summaryContainer');
+            const zones = Object.keys(zoneCounts);
+            
+            if (zones.length === 0) {
+                summaryContainer.innerHTML = '';
+                return;
+            }
+            
+            let summaryHTML = `
+                <div class="summary-section">
+                    <div class="summary-title">
+                        <i class="fas fa-map-marked-alt"></i> สรุปข้อมูลเขต (จากคอลัมน์ที่ 5)
+                    </div>
+                    <div class="zone-summary">
+            `;
+            
+            zones.forEach(zone => {
+                summaryHTML += `
+                    <div class="zone-item">
+                        <div class="zone-name">${zone}</div>
+                        <div class="zone-count">${zoneCounts[zone]} รายการ</div>
+                    </div>
+                `;
+            });
+            
+            summaryHTML += `
+                    </div>
+                </div>
+            `;
+            
+            summaryContainer.innerHTML = summaryHTML;
+        }
         
         // ฟังก์ชันค้นหาข้อมูลจากคอลัมน์ที่กำหนด
         function searchData(searchTerm, column) {
@@ -433,7 +576,7 @@
                             }
                         });
                     } 
-                    // ค้นหาในคอลัมน์ที่ระบุ (คอลัมน์ที่ 9 คือ index 8)
+                    // ค้นหาในคอลัมน์ที่ระบุ
                     else {
                         const columnIndex = parseInt(column) - 1;
                         if (row[columnIndex] && row[columnIndex].toString().includes(term)) {
@@ -466,6 +609,10 @@
                 `;
                 resultsCount.textContent = "พบ 0 รายการ";
             } else {
+                // สรุปข้อมูลเขต
+                const zoneSummary = createZoneSummary(results);
+                displayZoneSummary(zoneSummary);
+                
                 // สร้างตารางผลลัพธ์
                 let tableHTML = `
                     <table>
@@ -473,10 +620,11 @@
                             <tr>
                                 <th>ลำดับ</th>
                                 <th>เลขแปลง</th>
+                                <th>เขต (คอลัมน์ 5)</th>
                                 <th>ข้อมูลคอลัมน์ 1</th>
                                 <th>ข้อมูลคอลัมน์ 2</th>
-                                <th>ข้อมูลคอลัมน์ 3</th>
                                 <th>ข้อมูลคอลัมน์ 9</th>
+                                <th>คอลัมน์ 10 (ตัวเลข)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -485,23 +633,35 @@
                 results.forEach((row, index) => {
                     // เน้นข้อความที่ตรงกับการค้นหา
                     const highlightedRow = row.map(cell => {
-                        if (cell && cell.toString().includes(searchTerm)) {
-                            return cell.toString().replace(
-                                new RegExp(searchTerm, 'gi'), 
-                                match => `<span class="highlight">${match}</span>`
-                            );
+                        if (cell && searchTerm.split(',').some(term => 
+                            cell.toString().includes(term.trim()))) {
+                            let cellStr = cell.toString();
+                            searchTerm.split(',').forEach(term => {
+                                const trimmedTerm = term.trim();
+                                if (trimmedTerm) {
+                                    cellStr = cellStr.replace(
+                                        new RegExp(trimmedTerm, 'gi'), 
+                                        match => `<span class="highlight">${match}</span>`
+                                    );
+                                }
+                            });
+                            return cellStr;
                         }
                         return cell;
                     });
                     
+                    // คอลัมน์ที่ 10 - ไม่มีตัวคั่นระหว่างตัวเลข
+                    const col10Value = row[10] || '';
+                    
                     tableHTML += `
                         <tr>
                             <td>${index + 1}</td>
-                            <td>${highlightedRow[0] || ''}</td>
+                            <td class="col-number">${highlightedRow[0] || ''}</td>
+                            <td><span class="col-zone">${row[4] || 'ไม่ระบุเขต'}</span></td>
                             <td>${highlightedRow[1] || ''}</td>
                             <td>${highlightedRow[2] || ''}</td>
-                            <td>${highlightedRow[3] || ''}</td>
                             <td>${highlightedRow[8] || ''}</td>
+                            <td class="col-number">${col10Value}</td>
                         </tr>
                     `;
                 });
@@ -522,9 +682,11 @@
         function simulateAPICall(searchTerm, column) {
             return new Promise((resolve) => {
                 setTimeout(() => {
+                    // ทำความสะอาดข้อมูลคอลัมน์ที่ 10 ก่อนค้นหา
+                    const cleanedData = cleanColumn10Data(mockData);
                     const results = searchData(searchTerm, column);
                     resolve(results);
-                }, 1500); // จำลองความล่าช้าในการเรียก API
+                }, 1500);
             });
         }
         
@@ -579,14 +741,52 @@
         
         // การจัดการเหตุการณ์การโหลดข้อมูลใหม่
         reloadDataBtn.addEventListener('click', () => {
-            alert('กำลังโหลดข้อมูลใหม่จาก Google Sheet... (ในระบบจริงจะดึงข้อมูลล่าสุดจาก Google Sheets API)');
-            // ในระบบจริงจะเรียกฟังก์ชันเพื่อดึงข้อมูลล่าสุดจาก Google Sheets API
+            // ในระบบจริงจะดึงข้อมูลจาก Google Sheets API
+            const sheetId = 'BecKphnIZCWJUIfgappe30s-bKxAb4aWC33mAEgGrw';
+            
+            // แสดงการโหลด
+            loadingIndicator.style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            setTimeout(() => {
+                loadingIndicator.style.display = 'none';
+                alert('โหลดข้อมูลใหม่สำเร็จจาก Google Sheet!');
+                
+                // ข้อมูลตัวอย่างหลังโหลดใหม่
+                convertedNumberInput.value = "1000114511, 4000153585";
+                searchColumnSelect.value = "9";
+                
+                // แสดงข้อความแจ้งเตือน
+                const notification = document.createElement('div');
+                notification.innerHTML = `
+                    <div style="background-color: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #c8e6c9;">
+                        <i class="fas fa-check-circle"></i> โหลดข้อมูลใหม่จาก Google Sheet สำเร็จ (${mockData.length} รายการ)
+                    </div>
+                `;
+                document.querySelector('.input-group').appendChild(notification);
+                
+                setTimeout(() => notification.remove(), 3000);
+            }, 1500);
         });
         
         // การจัดการเหตุการณ์การค้นหาข้อมูลอื่นๆ
         otherSearchBtn.addEventListener('click', () => {
-            alert('เปิดฟังก์ชันการค้นหาข้อมูลอื่นๆ เช่น ทองไร่โคน, ค้นหาในทุกคอลัมน์');
-            // ในระบบจริงจะเปิดฟังก์ชันการค้นหาแบบขยาย
+            // สลับไปยังโหมดค้นหาข้อมูลอื่นๆ
+            searchColumnSelect.value = "all";
+            convertedNumberInput.placeholder = "ค้นหาในทุกคอลัมน์ เช่น ทองไร่โคน, ชื่อโครงการ, ...";
+            
+            // แสดงข้อความแจ้งเตือน
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div style="background-color: #e3f2fd; color: #1565c0; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #bbdefb;">
+                    <i class="fas fa-info-circle"></i> เปลี่ยนเป็นโหมดค้นหาข้อมูลอื่นๆ (ค้นหาในทุกคอลัมน์)
+                </div>
+            `;
+            document.querySelector('.input-group').appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+            
+            convertedNumberInput.focus();
         });
         
         // ข้อมูลตัวอย่างอัตโนมัติสำหรับการสาธิต
@@ -596,6 +796,8 @@
             
             // แสดงข้อความแนะนำ
             console.log("ระบบค้นหาเลขแปลง IN-TECH พร้อมใช้งาน");
+            console.log("• คอลัมน์ที่ 5: ข้อมูลเขต (แสดงในสรุปและในตาราง)");
+            console.log("• คอลัมน์ที่ 10: ข้อมูลตัวเลข (ไม่มีตัวคั่น)");
             console.log("ลองคลิกปุ่ม 'ค้นหาเลขแปลง' เพื่อทดสอบระบบ");
         });
     </script>
