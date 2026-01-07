@@ -3,622 +3,600 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากอ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>ระบบค้นหาเลขแปลง IN-TECH</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --info-color: #1abc9c;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Noto Sans Thai', sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
             min-height: 100vh;
-            font-family: 'Sarabun', 'Kanit', sans-serif;
-            padding: 15px;
         }
         
-        .main-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
             overflow: hidden;
-            margin-bottom: 20px;
         }
         
-        .header-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+        header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
             color: white;
-            padding: 25px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            padding: 25px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .header-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-        }
-        
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .header-section h1 {
-            font-weight: 700;
-            margin-bottom: 10px;
-            font-size: 2.2rem;
-        }
-        
-        .header-section .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        h1 {
+            font-size: 28px;
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h1 i {
+            color: #4fc3f7;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .sheet-info {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .sheet-id {
+            color: #bbdefb;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            gap: 30px;
         }
         
         .search-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
             padding: 25px;
-            border-bottom: 1px solid #eee;
+            border: 1px solid #e9ecef;
         }
         
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        h2 {
+            color: #1a237e;
             margin-bottom: 20px;
-            transition: transform 0.3s;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8eaf6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .card:hover {
-            transform: translateY(-2px);
+        h2 i {
+            color: #3949ab;
         }
         
-        .card-header {
-            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
-            color: white;
-            border-radius: 10px 10px 0 0 !important;
-            padding: 15px 20px;
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .search-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        label {
             font-weight: 600;
-            border: none;
+            color: #37474f;
+            min-width: 150px;
         }
         
-        .card-body {
-            padding: 20px;
-        }
-        
-        .btn {
+        input, select {
+            padding: 12px 15px;
+            border: 2px solid #c5cae9;
             border-radius: 8px;
-            font-weight: 500;
-            padding: 10px 20px;
+            font-size: 16px;
+            flex-grow: 1;
             transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3949ab;
+            box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.1);
+        }
+        
+        .search-btn {
+            background: linear-gradient(to right, #3949ab, #283593);
+            color: white;
             border: none;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2980b9 0%, #1c5a7a 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #219653 100%);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning-color) 0%, #e67e22 100%);
-            color: white;
-        }
-        
-        .btn-info {
-            background: linear-gradient(135deg, var(--info-color) 0%, #16a085 100%);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger-color) 0%, #c0392b 100%);
-        }
-        
-        .btn-outline-primary {
-            border: 2px solid var(--secondary-color);
-            color: var(--secondary-color);
-            background: transparent;
-        }
-        
-        .btn-outline-primary:hover {
-            background: var(--secondary-color);
-            color: white;
-        }
-        
-        .input-group .form-control {
-            border-radius: 8px 0 0 8px;
-            border: 2px solid #dee2e6;
-            padding: 12px 15px;
-        }
-        
-        .input-group .btn {
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .form-control:focus {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
-        }
-        
-        .stats-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            height: 100%;
-            transition: all 0.3s;
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-        
-        .stats-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            opacity: 0.8;
-        }
-        
-        .stats-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .stats-label {
-            color: #6c757d;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .table th {
-            background-color: var(--primary-color);
-            color: white;
+            border-radius: 8px;
+            padding: 14px 28px;
+            font-size: 16px;
             font-weight: 600;
-            border: none;
-            padding: 15px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        .table td {
-            padding: 12px 15px;
-            vertical-align: middle;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(52, 152, 219, 0.05);
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(52, 152, 219, 0.1);
             cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 150px;
         }
         
-        #loading {
-            text-align: center;
-            padding: 50px 20px;
+        .search-btn:hover {
+            background: linear-gradient(to right, #283593, #1a237e);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(57, 73, 171, 0.3);
         }
         
-        .spinner-border {
-            width: 3.5rem;
-            height: 3.5rem;
+        .search-btn:active {
+            transform: translateY(0);
         }
         
-        .badge {
-            font-weight: 500;
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-        
-        .highlight {
-            background-color: #fff3cd;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #856404;
-        }
-        
-        .search-highlight {
-            background-color: #d1ecf1;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #0c5460;
-        }
-        
-        .alert {
-            border: none;
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #6c757d;
-            font-size: 0.9rem;
-            border-top: 1px solid #eee;
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
             margin-top: 20px;
         }
         
-        .footer a {
-            color: var(--secondary-color);
-            text-decoration: none;
+        .secondary-btn {
+            background-color: #f1f3f9;
+            color: #3949ab;
+            border: 2px solid #c5cae9;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 180px;
         }
         
-        .footer a:hover {
-            text-decoration: underline;
+        .secondary-btn:hover {
+            background-color: #e8eaf6;
+            border-color: #3949ab;
         }
         
-        .pagination .page-link {
-            color: var(--secondary-color);
-            border: 1px solid #dee2e6;
-            margin: 0 3px;
-            border-radius: 6px;
+        .results-section {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
         }
         
-        .pagination .page-item.active .page-link {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-            color: white;
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-count {
+            font-size: 16px;
+            color: #546e7a;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th {
+            background-color: #e8eaf6;
+            color: #1a237e;
+            text-align: left;
+            padding: 15px;
+            border-bottom: 2px solid #c5cae9;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #757575;
+            font-size: 18px;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            font-weight: 600;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #3949ab;
+            font-size: 18px;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3949ab;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .column-info {
+            background-color: #e3f2fd;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        
+        .column-info strong {
+            color: #0d47a1;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #78909c;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 20px;
         }
         
         @media (max-width: 768px) {
-            .header-section {
-                padding: 20px 15px;
+            .search-row {
+                flex-direction: column;
+                align-items: flex-start;
             }
             
-            .header-section h1 {
-                font-size: 1.8rem;
+            input, select {
+                width: 100%;
             }
             
-            .search-section {
-                padding: 20px 15px;
+            .search-btn {
+                width: 100%;
+                margin-top: 10px;
             }
             
-            .btn {
-                padding: 8px 15px;
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .secondary-btn {
+                width: 100%;
+            }
+            
+            th, td {
+                padding: 10px 5px;
                 font-size: 14px;
             }
-            
-            .table-responsive {
-                font-size: 13px;
-            }
-            
-            .stats-value {
-                font-size: 1.8rem;
-            }
-        }
-        
-        /* Animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .pulse {
-            animation: pulse 0.5s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-12 col-lg-10 col-xl-9">
-                <!-- Main Container -->
-                <div class="main-container fade-in">
-                    
-                    <!-- Header Section -->
-                    <div class="header-section">
-                        <div class="header-content">
-                            <h1><i class="fas fa-search-location me-2"></i>ระบบค้นหาเลขแปลง IN-TECH</h1>
-                            <p class="subtitle">โครงการผ่ากอ | แสดงข้อมูลจาก Google Sheet: <strong>สถานะ</strong></p>
-                            <p class="mb-0">
-                                <span class="badge bg-light text-dark me-2">
-                                    <i class="fas fa-database me-1"></i>Sheet ID: 15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw
-                                </span>
-                                <span class="badge bg-light text-dark">
-                                    <i class="fas fa-clock me-1"></i>
-                                    <span id="currentTime">กำลังโหลด...</span>
-                                </span>
-                            </p>
-                        </div>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-search"></i> ระบบค้นหาเลขแปลง IN-TECH</h1>
+            <div class="subtitle">โครงการท ากลา | แสดงข้อมูลจาก Google Sheet: สถานะ</div>
+            <div class="sheet-info">Sheet ID: <span class="sheet-id">BecKphnIZCWJUIfgappe30s-bKxAb4aWC33mAEgGrw</span></div>
+        </header>
+        
+        <div class="main-content">
+            <section class="search-section">
+                <h2><i class="fas fa-search"></i> ค้นหาเลขแปลง IN-TECH</h2>
+                
+                <div class="input-group">
+                    <div class="search-row">
+                        <label for="convertedNumber"><i class="fas fa-hashtag"></i> กรอกเลขแปลง</label>
+                        <input type="text" id="convertedNumber" placeholder="เช่น 1000114511, 4000153585, 1002388145">
                     </div>
                     
-                    <!-- Messages Container -->
-                    <div id="messages" class="px-3 pt-3"></div>
-                    
-                    <!-- Search Section -->
-                    <div class="search-section">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <i class="fas fa-hashtag me-2"></i>ค้นหาเลขแปลง IN-TECH
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-semibold">
-                                                <i class="fas fa-search me-1"></i> กรอกเลขแปลง
-                                            </label>
-                                            <div class="input-group">
-                                                <input type="text" 
-                                                       id="searchIntechInput" 
-                                                       class="form-control" 
-                                                       placeholder="เช่น 1000114511, 4000153585"
-                                                       autocomplete="off">
-                                                <button id="searchIntechBtn" class="btn btn-primary">
-                                                    <i class="fas fa-search me-1"></i> ค้นหา
-                                                </button>
-                                            </div>
-                                            <div class="form-text">
-                                                ค้นหาในคอลัมน์: <strong>เลขแปลงและยกั</strong>, <strong>เลขโครงขา้</strong>, <strong>ชื่อราคาไฟ</strong>
-                                            </div>
-                                        </div>
-                                        <div class="d-grid gap-2 d-md-flex">
-                                            <button id="quickSearch1" class="btn btn-outline-primary">
-                                                <i class="fas fa-bolt me-1"></i> 1000114511
-                                            </button>
-                                            <button id="quickSearch2" class="btn btn-outline-primary">
-                                                <i class="fas fa-bolt me-1"></i> 4000153585
-                                            </button>
-                                            <button id="quickSearch3" class="btn btn-outline-primary">
-                                                <i class="fas fa-bolt me-1"></i> 1002388145
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <i class="fas fa-filter me-2"></i>ค้นหาทั่วไป
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-semibold">
-                                                <i class="fas fa-search me-1"></i> ค้นหาข้อมูลอื่นๆ
-                                            </label>
-                                            <div class="input-group">
-                                                <input type="text" 
-                                                       id="searchGeneralInput" 
-                                                       class="form-control" 
-                                                       placeholder="ชื่อเกษตรกร, เขต, พันธ์"
-                                                       autocomplete="off">
-                                                <button id="searchGeneralBtn" class="btn btn-secondary">
-                                                    <i class="fas fa-search me-1"></i> ค้นหา
-                                                </button>
-                                            </div>
-                                            <div class="form-text">
-                                                ค้นหาในทุกคอลัมน์
-                                            </div>
-                                        </div>
-                                        <div class="d-grid gap-2 d-md-flex">
-                                            <button id="loadDataBtn" class="btn btn-success">
-                                                <i class="fas fa-sync-alt me-1"></i> โหลดข้อมูลใหม่
-                                            </button>
-                                            <button id="clearSearchBtn" class="btn btn-danger">
-                                                <i class="fas fa-times me-1"></i> ล้างค้นหา
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Action Buttons -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="d-flex flex-wrap gap-2">
-                                    <button id="testConnectionBtn" class="btn btn-warning">
-                                        <i class="fas fa-vial me-1"></i> ทดสอบการเชื่อมต่อ
-                                    </button>
-                                    <button id="viewRawDataBtn" class="btn btn-info">
-                                        <i class="fas fa-code me-1"></i> ดูข้อมูลดิบ
-                                    </button>
-                                    <button id="viewHistoryBtn" class="btn btn-outline-info">
-                                        <i class="fas fa-history me-1"></i> ประวัติการค้นหา
-                                    </button>
-                                    <button id="exportDataBtn" class="btn btn-outline-success">
-                                        <i class="fas fa-download me-1"></i> ดาวน์โหลด CSV
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="search-row">
+                        <label for="searchColumn"><i class="fas fa-columns"></i> ค้นหาในคอลัมน์</label>
+                        <select id="searchColumn">
+                            <option value="9" selected>คอลัมน์ที่ 9 (ข้อมูลหลัก)</option>
+                            <option value="all">ทุกคอลัมน์</option>
+                            <option value="1">คอลัมน์ 1</option>
+                            <option value="2">คอลัมน์ 2</option>
+                            <option value="3">คอลัมน์ 3</option>
+                            <option value="4">คอลัมน์ 4</option>
+                            <option value="5">คอลัมน์ 5</option>
+                            <option value="6">คอลัมน์ 6</option>
+                            <option value="7">คอลัมน์ 7</option>
+                            <option value="8">คอลัมน์ 8</option>
+                            <option value="10">คอลัมน์ 10</option>
+                        </select>
                     </div>
                     
-                    <!-- Search Results -->
-                    <div id="searchResults" class="px-3"></div>
-                    
-                    <!-- Statistics -->
-                    <div id="statsContainer" class="px-3 mb-4">
-                        <div class="row g-3" id="stats">
-                            <!-- Stats will be populated by JavaScript -->
-                        </div>
-                    </div>
-                    
-                    <!-- Available Columns -->
-                    <div id="availableColumns" class="px-3 mb-4"></div>
-                    
-                    <!-- Loading State -->
-                    <div id="loading" style="display: none;">
-                        <div class="text-center py-5">
-                            <div class="spinner-border text-primary"></div>
-                            <h5 class="mt-3">กำลังโหลดข้อมูล...</h5>
-                            <p class="text-muted">กรุณารอสักครู่</p>
-                            <div class="progress mt-3" style="height: 8px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                     style="width: 100%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Data Table -->
-                    <div id="dataSection" class="px-3 pb-3">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-table me-2"></i>
-                                    <span id="dataTitle">ข้อมูลทั้งหมด</span>
-                                    <span id="dataInfo" class="ms-2 small text-light"></span>
-                                </div>
-                                <div class="badge bg-light text-dark">
-                                    <i class="fas fa-chart-bar me-1"></i>
-                                    <span id="dataCount">0</span> รายการ
-                                </div>
-                            </div>
-                            <div class="card-body p-0">
-                                <div id="dataTable">
-                                    <!-- Data will be populated here -->
-                                    <div class="text-center py-5">
-                                        <i class="fas fa-database fa-3x text-muted mb-3"></i>
-                                        <h5>ยังไม่มีข้อมูล</h5>
-                                        <p class="text-muted">กดปุ่ม "โหลดข้อมูลใหม่" เพื่อเริ่มต้น</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="column-info">
+                        <i class="fas fa-info-circle"></i> คุณต้องการค้นหาจาก <strong>คอลัมน์ที่ 9</strong> ซึ่งตั้งค่าไว้เป็นค่าเริ่มต้น
                     </div>
                 </div>
                 
-                <!-- Footer -->
-                <div class="footer">
-                    <p>
-                        <strong>ระบบค้นหาเลขแปลง IN-TECH</strong> | โครงการผ่ากอ 
-                        | อัปเดตล่าสุด: <span id="updateTime"></span>
-                    </p>
-                    <p class="small">
-                        <i class="fas fa-code me-1"></i>พัฒนาด้วย Google Sheets API, Bootstrap 5 & JavaScript
-                        | <i class="fas fa-shield-alt me-1"></i>ข้อมูลถูกดึงแบบ Real-time
-                    </p>
+                <button class="search-btn" id="searchButton">
+                    <i class="fas fa-search"></i> ค้นหาเลขแปลง
+                </button>
+                
+                <div class="action-buttons">
+                    <button class="secondary-btn" id="otherSearchBtn">
+                        <i class="fas fa-search-plus"></i> ค้นหาข้อมูลอื่นๆ
+                    </button>
+                    <button class="secondary-btn" id="reloadDataBtn">
+                        <i class="fas fa-sync-alt"></i> โหลดข้อมูลใหม่
+                    </button>
+                    <button class="secondary-btn" id="clearSearchBtn">
+                        <i class="fas fa-eraser"></i> ล้างค้นหา
+                    </button>
                 </div>
+            </section>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                กำลังค้นหาข้อมูลจาก Google Sheet...
             </div>
+            
+            <section class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h2><i class="fas fa-table"></i> ผลการค้นหา</h2>
+                    <div class="results-count" id="resultsCount">พบ 0 รายการ</div>
+                </div>
+                
+                <div id="resultsTableContainer">
+                    <!-- ผลลัพธ์จะแสดงที่นี่ -->
+                </div>
+            </section>
         </div>
+        
+        <footer>
+            <p>ระบบค้นหาเลขแปลง IN-TECH | โครงการท ากลา | อัปเดตล่าสุด: มิถุนายน 2023</p>
+        </footer>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="script.js"></script>
-    
     <script>
-        // Update time function
-        function updateTime() {
-            const now = new Date();
-            const timeOptions = {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            };
+        // ข้อมูลตัวอย่างจาก Google Sheet (แทนที่ด้วยการดึงข้อมูลจริงจาก Google Sheets API)
+        const mockData = [
+            ["1000114511", "ข้อมูล A", "ข้อมูล B", "ข้อมูล C", "ข้อมูล D", "ข้อมูล E", "ข้อมูล F", "ข้อมูล G", "ข้อมูล H", "ข้อมูล I (คอลัมน์ 9)"],
+            ["4000153585", "ข้อมูล A2", "ข้อมูล B2", "ข้อมูล C2", "ข้อมูล D2", "ข้อมูล E2", "ข้อมูล F2", "ข้อมูล G2", "ข้อมูล H2", "ข้อมูล I2 (คอลัมน์ 9)"],
+            ["1002388145", "ข้อมูล A3", "ข้อมูล B3", "ข้อมูล C3", "ข้อมูล D3", "ข้อมูล E3", "ข้อมูล F3", "ข้อมูล G3", "ข้อมูล H3", "ข้อมูล I3 (คอลัมน์ 9)"],
+            ["5000123456", "ข้อมูล A4", "ข้อมูล B4", "ข้อมูล C4", "ข้อมูล D4", "ข้อมูล E4", "ข้อมูล F4", "ข้อมูล G4", "ข้อมูล H4", "ข้อมูล I4 (คอลัมน์ 9)"],
+            ["6000789123", "ข้อมูล A5", "ข้อมูล B5", "ข้อมูล C5", "ข้อมูล D5", "ข้อมูล E5", "ข้อมูล F5", "ข้อมูล G5", "ข้อมูล H5", "ข้อมูล I5 (คอลัมน์ 9)"],
+        ];
+        
+        // ฟังก์ชันค้นหาข้อมูลจากคอลัมน์ที่กำหนด
+        function searchData(searchTerm, column) {
+            if (!searchTerm.trim()) {
+                return [];
+            }
             
-            const dateOptions = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
+            const searchTerms = searchTerm.split(',').map(term => term.trim()).filter(term => term);
+            const results = [];
             
-            $('#currentTime').text(now.toLocaleTimeString('th-TH', timeOptions));
-            $('#updateTime').text(now.toLocaleString('th-TH', dateOptions));
+            mockData.forEach(row => {
+                let matchFound = false;
+                
+                searchTerms.forEach(term => {
+                    // ถ้าค้นหาในทุกคอลัมน์
+                    if (column === 'all') {
+                        row.forEach((cell, index) => {
+                            if (cell && cell.toString().includes(term)) {
+                                matchFound = true;
+                            }
+                        });
+                    } 
+                    // ค้นหาในคอลัมน์ที่ระบุ (คอลัมน์ที่ 9 คือ index 8)
+                    else {
+                        const columnIndex = parseInt(column) - 1;
+                        if (row[columnIndex] && row[columnIndex].toString().includes(term)) {
+                            matchFound = true;
+                        }
+                    }
+                });
+                
+                if (matchFound) {
+                    results.push(row);
+                }
+            });
+            
+            return results;
         }
         
-        // Update time every second
-        setInterval(updateTime, 1000);
-        updateTime();
+        // ฟังก์ชันแสดงผลลัพธ์
+        function displayResults(results, searchTerm) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsCount = document.getElementById('resultsCount');
+            const tableContainer = document.getElementById('resultsTableContainer');
+            
+            if (results.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search fa-3x" style="color: #bdbdbd; margin-bottom: 15px;"></i>
+                        <p>ไม่พบข้อมูลที่ค้นหา "${searchTerm}"</p>
+                        <p style="font-size: 14px; margin-top: 10px;">ลองตรวจสอบเลขแปลงและลองอีกครั้ง</p>
+                    </div>
+                `;
+                resultsCount.textContent = "พบ 0 รายการ";
+            } else {
+                // สร้างตารางผลลัพธ์
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ลำดับ</th>
+                                <th>เลขแปลง</th>
+                                <th>ข้อมูลคอลัมน์ 1</th>
+                                <th>ข้อมูลคอลัมน์ 2</th>
+                                <th>ข้อมูลคอลัมน์ 3</th>
+                                <th>ข้อมูลคอลัมน์ 9</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                results.forEach((row, index) => {
+                    // เน้นข้อความที่ตรงกับการค้นหา
+                    const highlightedRow = row.map(cell => {
+                        if (cell && cell.toString().includes(searchTerm)) {
+                            return cell.toString().replace(
+                                new RegExp(searchTerm, 'gi'), 
+                                match => `<span class="highlight">${match}</span>`
+                            );
+                        }
+                        return cell;
+                    });
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${highlightedRow[0] || ''}</td>
+                            <td>${highlightedRow[1] || ''}</td>
+                            <td>${highlightedRow[2] || ''}</td>
+                            <td>${highlightedRow[3] || ''}</td>
+                            <td>${highlightedRow[8] || ''}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+                tableContainer.innerHTML = tableHTML;
+                resultsCount.textContent = `พบ ${results.length} รายการ`;
+            }
+            
+            resultsSection.style.display = 'block';
+        }
         
-        // Quick search buttons
-        $('#quickSearch1').click(function() {
-            $('#searchIntechInput').val('1000114511');
-            searchIntech();
+        // ฟังก์ชันจำลองการโหลดข้อมูลจาก Google Sheet
+        function simulateAPICall(searchTerm, column) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const results = searchData(searchTerm, column);
+                    resolve(results);
+                }, 1500); // จำลองความล่าช้าในการเรียก API
+            });
+        }
+        
+        // อ้างอิงถึงองค์ประกอบ DOM
+        const searchButton = document.getElementById('searchButton');
+        const convertedNumberInput = document.getElementById('convertedNumber');
+        const searchColumnSelect = document.getElementById('searchColumn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const reloadDataBtn = document.getElementById('reloadDataBtn');
+        const otherSearchBtn = document.getElementById('otherSearchBtn');
+        
+        // การจัดการเหตุการณ์การคลิกที่ปุ่มค้นหา
+        searchButton.addEventListener('click', async () => {
+            const searchTerm = convertedNumberInput.value;
+            const column = searchColumnSelect.value;
+            
+            if (!searchTerm.trim()) {
+                alert('กรุณากรอกเลขแปลงที่ต้องการค้นหา');
+                convertedNumberInput.focus();
+                return;
+            }
+            
+            // แสดงตัวบ่งชี้การโหลด
+            loadingIndicator.style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // จำลองการเรียก API
+            const results = await simulateAPICall(searchTerm, column);
+            
+            // ซ่อนตัวบ่งชี้การโหลดและแสดงผลลัพธ์
+            loadingIndicator.style.display = 'none';
+            displayResults(results, searchTerm);
+            
+            // เลื่อนไปที่ส่วนผลลัพธ์
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         });
         
-        $('#quickSearch2').click(function() {
-            $('#searchIntechInput').val('4000153585');
-            searchIntech();
-        });
-        
-        $('#quickSearch3').click(function() {
-            $('#searchIntechInput').val('1002388145');
-            searchIntech();
-        });
-        
-        // Keyboard shortcuts
-        $(document).keydown(function(e) {
-            // Ctrl + F = Focus on search input
-            if (e.ctrlKey && e.key === 'f') {
-                e.preventDefault();
-                $('#searchIntechInput').focus();
-            }
-            
-            // Ctrl + R = Reload data
-            if (e.ctrlKey && e.key === 'r') {
-                e.preventDefault();
-                $('#loadDataBtn').click();
-            }
-            
-            // Esc = Clear search
-            if (e.key === 'Escape') {
-                $('#clearSearchBtn').click();
-            }
-            
-            // Enter in search input
-            if (e.key === 'Enter' && $('#searchIntechInput').is(':focus')) {
-                searchIntech();
-            }
-            
-            if (e.key === 'Enter' && $('#searchGeneralInput').is(':focus')) {
-                searchGeneral();
+        // อนุญาตให้ค้นหาโดยกด Enter
+        convertedNumberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchButton.click();
             }
         });
         
-        // Auto-focus on search input
-        $(document).ready(function() {
-            setTimeout(() => {
-                $('#searchIntechInput').focus();
-            }, 500);
+        // การจัดการเหตุการณ์การล้างค้นหา
+        clearSearchBtn.addEventListener('click', () => {
+            convertedNumberInput.value = '';
+            document.getElementById('resultsSection').style.display = 'none';
+            convertedNumberInput.focus();
+        });
+        
+        // การจัดการเหตุการณ์การโหลดข้อมูลใหม่
+        reloadDataBtn.addEventListener('click', () => {
+            alert('กำลังโหลดข้อมูลใหม่จาก Google Sheet... (ในระบบจริงจะดึงข้อมูลล่าสุดจาก Google Sheets API)');
+            // ในระบบจริงจะเรียกฟังก์ชันเพื่อดึงข้อมูลล่าสุดจาก Google Sheets API
+        });
+        
+        // การจัดการเหตุการณ์การค้นหาข้อมูลอื่นๆ
+        otherSearchBtn.addEventListener('click', () => {
+            alert('เปิดฟังก์ชันการค้นหาข้อมูลอื่นๆ เช่น ทองไร่โคน, ค้นหาในทุกคอลัมน์');
+            // ในระบบจริงจะเปิดฟังก์ชันการค้นหาแบบขยาย
+        });
+        
+        // ข้อมูลตัวอย่างอัตโนมัติสำหรับการสาธิต
+        window.addEventListener('DOMContentLoaded', () => {
+            // เตรียมข้อมูลตัวอย่างในช่องค้นหา
+            convertedNumberInput.value = "1000114511, 4000153585";
             
-            // Add animation to stats cards
-            $('.stats-card').addClass('fade-in');
+            // แสดงข้อความแนะนำ
+            console.log("ระบบค้นหาเลขแปลง IN-TECH พร้อมใช้งาน");
+            console.log("ลองคลิกปุ่ม 'ค้นหาเลขแปลง' เพื่อทดสอบระบบ");
         });
     </script>
 </body>
