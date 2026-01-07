@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ค้นหาเลขแปลง IN-TECH | โครงการผ่ากอ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Sukhumvit', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .search-section {
+            margin-bottom: 25px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #searchInput {
+            flex: 1;
+            padding: 18px 20px;
+            border: 3px solid #1a73e8;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        #searchInput:focus {
+            outline: none;
+            border-color: #0d62d9;
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.2);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d62d9 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #5f6368;
+            border: 2px solid #ddd;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 150px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #5f6368;
+        }
+        
+        .no-data i {
+            font-size: 4rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+        
+        .result-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #1a73e8;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .result-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: #4a5568;
+            width: 180px;
+            min-width: 180px;
+        }
+        
+        .result-value {
+            color: #2d3748;
+            flex: 1;
+            word-break: break-word;
+        }
+        
+        .highlight {
+            background: #ffeaa7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #e6fffa;
+            color: #234e52;
+            border-color: #81e6d9;
+        }
+        
+        .error-message {
+            background: #fde8e8;
+            color: #c53030;
+            border-color: #feb2b2;
+        }
+        
+        .info-message {
+            background: #ebf8ff;
+            color: #2c5282;
+            border-color: #90cdf4;
+        }
+        
+        .debug-info {
+            margin-top: 25px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        
+        .history-section {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 10px;
+            border: 1px solid #bae6fd;
+        }
+        
+        .history-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .history-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .history-tag {
+            background: white;
+            border: 1px solid #bae6fd;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .history-tag:hover {
+            background: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin-top: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                min-width: 100%;
+            }
+            
+            .result-row {
+                flex-direction: column;
+            }
+            
+            .result-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .history-items {
+                justify-content: center;
+            }
+        }
+        
+        /* เมนูตัวอย่างข้อมูล */
+        .sample-menu {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px dashed #cbd5e0;
+        }
+        
+        .sample-title {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sample-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .sample-btn {
+            background: white;
+            border: 1px solid #1a73e8;
+            color: #1a73e8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sample-btn:hover {
+            background: #1a73e8;
+            color: white;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search"></i> ค้นหาเลขแปลง IN-TECH</h1>
+            <p>ระบบค้นหาเลขแปลงจาก Google Sheet โครงการผ่ากอ</p>
+        </div>
+        
+        <div class="content">
+            <!-- ข้อความแสดงสถานะ -->
+            <div class="message success-message" id="successMessage"></div>
+            <div class="message error-message" id="errorMessage"></div>
+            <div class="message info-message" id="infoMessage"></div>
+            
+            <!-- เมนูตัวอย่างข้อมูล -->
+            <div class="sample-menu">
+                <div class="sample-title">
+                    <i class="fas fa-lightbulb"></i> ตัวอย่างเลขแปลงที่สามารถค้นหาได้:
+                </div>
+                <div class="sample-buttons" id="sampleButtons">
+                    <!-- ตัวอย่างข้อมูลจะถูกเพิ่มด้วย JavaScript -->
+                </div>
+            </div>
+            
+            <!-- ช่องค้นหา -->
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" 
+                           id="searchInput" 
+                           placeholder="กรอกเลขแปลงที่ต้องการค้นหา เช่น 1000114511"
+                           autocomplete="off"
+                           autofocus
+                           aria-label="ช่องค้นหาเลขแปลง">
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" id="searchBtn" aria-label="ค้นหาข้อมูล">
+                        <i class="fas fa-search"></i> ค้นหา
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn" aria-label="ล้างข้อมูล">
+                        <i class="fas fa-eraser"></i> ล้าง
+                    </button>
+                    <button class="btn btn-success" id="loadDataBtn" aria-label="โหลดข้อมูลจาก Google Sheet">
+                        <i class="fas fa-cloud-download-alt"></i> โหลดข้อมูล
+                    </button>
+                    <button class="btn btn-secondary" id="testBtn" aria-label="ทดสอบระบบ">
+                        <i class="fas fa-vial"></i> ทดสอบ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- ผลลัพธ์ -->
+            <div class="result-section" id="resultSection">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>กำลังค้นหาข้อมูล...</p>
+                </div>
+                
+                <div class="no-data" id="noData">
+                    <i class="fas fa-search"></i>
+                    <h3>ยังไม่ได้ค้นหา</h3>
+                    <p>กรุณากรอกเลขแปลงที่ต้องการค้นหา</p>
+                </div>
+                
+                <div id="resultsContainer"></div>
+            </div>
+            
+            <!-- ประวัติการค้นหา -->
+            <div class="history-section" id="historySection" style="display: none;">
+                <div class="history-title">
+                    <h4><i class="fas fa-history"></i> ประวัติการค้นหา</h4>
+                    <button class="btn btn-secondary" id="clearHistoryBtn" style="padding: 5px 15px; font-size: 0.9rem;">
+                        <i class="fas fa-trash"></i> ล้างประวัติ
+                    </button>
+                </div>
+                <div class="history-items" id="historyItems">
+                    <!-- ประวัติการค้นหาจะแสดงที่นี่ -->
+                </div>
+            </div>
+            
+            <!-- ข้อมูลระบบ -->
+            <div class="debug-info">
+                <p><strong>สถานะระบบ:</strong> <span id="systemStatus">กำลังเตรียมระบบ...</span></p>
+                <p><strong>ข้อมูลในระบบ:</strong> <span id="dataCount">0 รายการ</span></p>
+                <p><strong>ประวัติการค้นหา:</strong> <span id="historyCount">0 รายการ</span></p>
+                <p><small>กดปุ่ม "ทดสอบ" เพื่อตรวจสอบระบบ หรือ F12 เพื่อเปิด Developer Console</small></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 1. ข้อมูลตัวอย่างเริ่มต้น
+        // ============================================
+        let sheetData = [];
+        let systemReady = false;
+        const SEARCH_HISTORY_KEY = 'in-tech-search-history';
+        const MAX_HISTORY = 10;
+
+        // ============================================
+        // 2. อ้างอิง DOM Elements
+        // ============================================
+        const elements = {
+            // Inputs
+            searchInput: document.getElementById('searchInput'),
+            
+            // Buttons
+            searchBtn: document.getElementById('searchBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            loadDataBtn: document.getElementById('loadDataBtn'),
+            testBtn: document.getElementById('testBtn'),
+            clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+            
+            // Messages
+            successMessage: document.getElementById('successMessage'),
+            errorMessage: document.getElementById('errorMessage'),
+            infoMessage: document.getElementById('infoMessage'),
+            
+            // Results
+            resultSection: document.getElementById('resultSection'),
+            loading: document.getElementById('loading'),
+            noData: document.getElementById('noData'),
+            resultsContainer: document.getElementById('resultsContainer'),
+            
+            // History
+            historySection: document.getElementById('historySection'),
+            historyItems: document.getElementById('historyItems'),
+            
+            // Status
+            systemStatus: document.getElementById('systemStatus'),
+            dataCount: document.getElementById('dataCount'),
+            historyCount: document.getElementById('historyCount'),
+            
+            // Sample buttons
+            sampleButtons: document.getElementById('sampleButtons')
+        };
+
+        // ============================================
+        // 3. ฟังก์ชันแสดงข้อความ
+        // ============================================
+        function showMessage(type, text, duration = 5000) {
+            const element = elements[`${type}Message`];
+            const otherTypes = ['success', 'error', 'info'].filter(t => t !== type);
+            
+            element.textContent = text;
+            element.style.display = 'block';
+            
+            otherTypes.forEach(otherType => {
+                elements[`${otherType}Message`].style.display = 'none';
+            });
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, duration);
+            }
+        }
+
+        function showLoading(show) {
+            elements.loading.style.display = show ? 'block' : 'none';
+            if (show) {
+                elements.noData.style.display = 'none';
+            }
+        }
+
+        function updateSystemStatus() {
+            elements.systemStatus.textContent = systemReady ? 'พร้อมใช้งาน' : 'กำลังเตรียมระบบ';
+            elements.systemStatus.style.color = systemReady ? '#28a745' : '#e74c3c';
+            elements.dataCount.textContent = `${sheetData.length} รายการ`;
+        }
+
+        // ============================================
+        // 4. ฟังก์ชันจัดการประวัติการค้นหา
+        // ============================================
+        function saveSearchHistory(searchTerm) {
+            let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
+            
+            // เอา searchTerm ออกถ้ามีอยู่แล้ว
+            history = history.filter(item => item.toLowerCase() !== searchTerm.toLowerCase());
+            
+            // เพิ่ม searchTerm ไปด้านหน้า
+            history.unshift(searchTerm);
+            
+            // จำกัดจำนวนรายการ
+            history = history.slice(0, MAX_HISTORY);
+            
+            localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+            
+            // อัปเดตการแสดงผลประวัติ
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
+            
+            elements.historyCount.textContent = `${history.length} รายการ`;
+            
+            if (history.length > 0) {
+                elements.historySection.style.display = 'block';
+                elements.historyItems.innerHTML = '';
+                
+                history.forEach(term => {
+                    const tag = document.createElement('div');
+                    tag.className = 'history-tag';
+                    tag.innerHTML = `
+                        <i class="fas fa-search"></i>
+                        ${term}
+                    `;
+                    
+                    tag.addEventListener('click', () => {
+                        elements.searchInput.value = term;
+                        performSearch();
+                    });
+                    
+                    elements.historyItems.appendChild(tag);
+                });
+            } else {
+                elements.historySection.style.display = 'none';
+            }
+        }
+
+        function clearSearchHistory() {
+            localStorage.removeItem(SEARCH_HISTORY_KEY);
+            updateHistoryDisplay();
+            showMessage('success', 'ล้างประวัติการค้นหาเรียบร้อยแล้ว');
+        }
+
+        // ============================================
+        // 5. ฟังก์ชันค้นหาข้อมูล
+        // ============================================
+        function validateInput(searchTerm) {
+            searchTerm = searchTerm.trim();
+            
+            if (!searchTerm) {
+                throw new Error('กรุณากรอกเลขแปลงที่ต้องการค้นหา');
+            }
+            
+            if (searchTerm.length < 2) {
+                throw new Error('กรุณากรอกอย่างน้อย 2 ตัวอักษร');
+            }
+            
+            return searchTerm;
+        }
+
+        function performSearch() {
+            try {
+                const searchTerm = validateInput(elements.searchInput.value);
+                
+                console.log(`🔍 เริ่มค้นหา: "${searchTerm}"`);
+                showLoading(true);
+                elements.resultsContainer.innerHTML = '';
+                
+                // บันทึกประวัติการค้นหา
+                saveSearchHistory(searchTerm);
+                
+                setTimeout(() => {
+                    try {
+                        const results = searchInData(searchTerm);
+                        displayResults(results, searchTerm);
+                        showLoading(false);
+                        
+                        if (results.length > 0) {
+                            showMessage('success', `พบ ${results.length} รายการที่ตรงกับ "${searchTerm}"`);
+                        } else {
+                            showMessage('error', `ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"`);
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ เกิดข้อผิดพลาดในการค้นหา:', error);
+                        showMessage('error', error.message);
+                        showLoading(false);
+                    }
+                }, 800);
+                
+            } catch (error) {
+                showMessage('error', error.message);
+                elements.searchInput.focus();
+            }
+        }
+
+        function searchInData(searchTerm) {
+            console.log('📊 กำลังค้นหาในข้อมูล...');
+            console.log('จำนวนข้อมูลทั้งหมด:', sheetData.length);
+            
+            const results = [];
+            const searchLower = searchTerm.toLowerCase();
+            
+            sheetData.forEach((item, index) => {
+                let found = false;
+                let foundInColumn = '';
+                
+                // ค้นหาในทุกคอลัมน์
+                for (const column in item) {
+                    const value = String(item[column] || '');
+                    const valueLower = value.toLowerCase();
+                    
+                    // ตรวจสอบหลายเงื่อนไข
+                    if (value === searchTerm || 
+                        value.includes(searchTerm) || 
+                        valueLower.includes(searchLower) ||
+                        value.replace(/\s+/g, '').includes(searchTerm.replace(/\s+/g, ''))) {
+                        found = true;
+                        foundInColumn = column;
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    results.push({
+                        ...item,
+                        _matchInfo: `พบในคอลัมน์: ${foundInColumn}`
+                    });
+                }
+            });
+            
+            console.log('ค้นหาเสร็จสิ้น, พบทั้งหมด:', results.length, 'รายการ');
+            return results;
+        }
+
+        // ============================================
+        // 6. ฟังก์ชันแสดงผลลัพธ์
+        // ============================================
+        function displayResults(results, searchTerm) {
+            elements.resultsContainer.innerHTML = '';
+            
+            if (results.length === 0) {
+                elements.noData.innerHTML = `
+                    <i class="fas fa-search-minus"></i>
+                    <h3>ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"</h3>
+                    <p>ลองค้นหาใหม่ด้วยคำที่แตกต่าง</p>
+                    <div style="margin-top: 15px; background: #fff; padding: 15px; border-radius: 8px;">
+                        <p><strong>คำแนะนำ:</strong></p>
+                        <p>• ตรวจสอบการสะกด</p>
+                        <p>• ลองค้นหาเฉพาะส่วนของเลข</p>
+                        <p>• ข้อมูลในระบบมี ${sheetData.length} รายการ</p>
+                    </div>
+                `;
+                elements.noData.style.display = 'block';
+                return;
+            }
+            
+            elements.noData.style.display = 'none';
+            
+            // แสดงหัวข้อผลลัพธ์
+            const header = document.createElement('div');
+            header.className = 'result-item';
+            header.style.backgroundColor = '#E8F0FE';
+            header.innerHTML = `
+                <h3 style="color: #1a73e8; margin: 0;">
+                    <i class="fas fa-check-circle"></i> 
+                    พบ ${results.length} รายการที่ตรงกับ "${searchTerm}"
+                </h3>
+                <p style="margin-top: 5px; color: #5f6368;">
+                    ${results.length > 5 ? 'กรุณากรอกคำค้นหาให้เฉพาะเจาะจงมากขึ้น' : 'ข้อมูลที่ค้นพบทั้งหมด'}
+                </p>
+            `;
+            elements.resultsContainer.appendChild(header);
+            
+            // แสดงแต่ละผลลัพธ์
+            results.forEach((item, index) => {
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-item';
+                
+                let html = `
+                    <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
+                        <h4 style="color: #1a73e8; margin: 0;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ผลการค้นหาที่ ${index + 1}
+                        </h4>
+                        ${item._matchInfo ? `<p style="color: #666; font-size: 0.9em; margin-top: 5px;">${item._matchInfo}</p>` : ''}
+                    </div>
+                `;
+                
+                // แสดงข้อมูลทั้งหมด
+                for (const key in item) {
+                    if (key.startsWith('_')) continue;
+                    
+                    let value = item[key] || '(ไม่มีข้อมูล)';
+                    
+                    // เน้นข้อความที่ค้นพบ
+                    if (typeof value === 'string') {
+                        const searchPattern = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`(${searchPattern})`, 'gi');
+                        value = value.replace(regex, '<span class="highlight">$1</span>');
+                    }
+                    
+                    html += `
+                        <div class="result-row">
+                            <div class="result-label">${key}:</div>
+                            <div class="result-value">${value}</div>
+                        </div>
+                    `;
+                }
+                
+                // เพิ่มปุ่มคัดลอกข้อมูล
+                html += `
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button class="btn btn-secondary copy-btn" data-index="${index}" 
+                                style="padding: 8px 16px; font-size: 0.9rem;">
+                            <i class="far fa-copy"></i> คัดลอกข้อมูล
+                        </button>
+                    </div>
+                `;
+                
+                resultCard.innerHTML = html;
+                elements.resultsContainer.appendChild(resultCard);
+            });
+            
+            // เพิ่ม event listener สำหรับปุ่มคัดลอก
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    copyResultToClipboard(results[index]);
+                });
+            });
+        }
+
+        // ============================================
+        // 7. ฟังก์ชันโหลดข้อมูล
+        // ============================================
+        function loadSampleData() {
+            console.log('📥 กำลังโหลดข้อมูลตัวอย่าง...');
+            
+            // ข้อมูลตัวอย่าง
+            const sampleData = [
+                {
+                    'เลขที่แปลง': '1000114511',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'บริษัท อินเทค จำกัด',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '2.5 ไร่',
+                    'สถานะ': 'ดำเนินการ',
+                    'หมายเหตุ': 'แปลง IN-TECH หมายเลข 001',
+                    'ประเภท': 'โรงงาน',
+                    'เริ่มโครงการ': '01/01/2023'
+                },
+                {
+                    'เลขที่แปลง': 'IN-TECH-002',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'นายสมชาย ใจดี',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '1 ไร่',
+                    'สถานะ': 'รอดำเนินการ',
+                    'หมายเหตุ': 'แปลงปลูกผักอินทรีย์',
+                    'ประเภท': 'เกษตร',
+                    'เริ่มโครงการ': '15/03/2023'
+                },
+                {
+                    'เลขที่แปลง': '2000223344',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'นางสาวสุนิดา รักธรรม',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '3 ไร่',
+                    'สถานะ': 'เสร็จสิ้น',
+                    'หมายเหตุ': 'แปลงศูนย์กระจายสินค้า',
+                    'ประเภท': 'คลังสินค้า',
+                    'เริ่มโครงการ': '10/02/2023'
+                },
+                {
+                    'เลขที่แปลง': 'TECH-003',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'บริษัท เทคโนโลยี ไทย จำกัด',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '5 ไร่',
+                    'สถานะ': 'ดำเนินการ',
+                    'หมายเหตุ': 'แปลงโรงงานผลิต',
+                    'ประเภท': 'โรงงาน',
+                    'เริ่มโครงการ': '20/01/2023'
+                },
+                {
+                    'เลขที่แปลง': 'PAKA-004',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'หจก.พัฒนาการเกษตร',
+                    'ที่ตั้ง': 'อ.สันทราย จ.เชียงใหม่',
+                    'พื้นที่': '10 ไร่',
+                    'สถานะ': 'วางแผน',
+                    'หมายเหตุ': 'แปลงทดลองเกษตรผสมผสาน',
+                    'ประเภท': 'วิจัย',
+                    'เริ่มโครงการ': '01/04/2023'
+                }
+            ];
+            
+            sheetData = sampleData;
+            updateSystemStatus();
+            showMessage('success', `โหลดข้อมูลตัวอย่างสำเร็จ ${sheetData.length} รายการ`);
+            
+            // อัปเดตตัวอย่างปุ่มค้นหา
+            updateSampleButtons();
+            
+            console.log('✅ โหลดข้อมูลตัวอย่างเสร็จสิ้น');
+            return true;
+        }
+
+        function updateSampleButtons() {
+            elements.sampleButtons.innerHTML = '';
+            
+            // สร้างปุ่มตัวอย่างจากข้อมูลที่มี
+            const sampleTerms = ['1000114511', 'IN-TECH', 'TECH', 'PAKA', 'ผ่ากอ'];
+            
+            sampleTerms.forEach(term => {
+                const btn = document.createElement('button');
+                btn.className = 'sample-btn';
+                btn.textContent = term;
+                btn.addEventListener('click', () => {
+                    elements.searchInput.value = term;
+                    performSearch();
+                });
+                elements.sampleButtons.appendChild(btn);
+            });
+        }
+
+        // ============================================
+        // 8. ฟังก์ชันทดสอบระบบ
+        // ============================================
+        function testSystem() {
+            console.group('🧪 ทดสอบระบบค้นหา');
+            
+            console.log('📋 ข้อมูลในระบบ:', sheetData);
+            console.log('🔢 จำนวนข้อมูล:', sheetData.length);
+            
+            if (sheetData.length > 0) {
+                console.log('🏷️ คอลัมน์ทั้งหมด:', Object.keys(sheetData[0]));
+            }
+            
+            // ทดสอบค้นหาตัวอย่าง
+            const testTerms = ['1000114511', 'IN-TECH', 'ผ่ากอ', 'XXX'];
+            
+            testTerms.forEach(term => {
+                console.log(`🔍 ทดสอบค้นหา "${term}":`);
+                const results = searchInData(term);
+                console.log(`   ผล: ${results.length} รายการ`);
+                
+                if (results.length > 0) {
+                    console.log('   ตัวอย่างข้อมูลแรก:', results[0]);
+                }
+            });
+            
+            console.groupEnd();
+            
+            showMessage('success', 'ทดสอบระบบสำเร็จ! ดูผลลัพธ์ใน Console (F12)');
+            elements.searchInput.value = "1000114511";
+        }
+
+        // ============================================
+        // 9. ฟังก์ชันเสริม
+        // ============================================
+        function clearSearch() {
+            elements.searchInput.value = '';
+            elements.resultsContainer.innerHTML = '';
+            elements.noData.innerHTML = `
+                <i class="fas fa-search"></i>
+                <h3>ยังไม่ได้ค้นหา</h3>
+                <p>กรุณากรอกเลขแปลงที่ต้องการค้นหา</p>
+            `;
+            elements.noData.style.display = 'block';
+            
+            // ซ่อนข้อความทั้งหมด
+            ['success', 'error', 'info'].forEach(type => {
+                elements[`${type}Message`].style.display = 'none';
+            });
+            
+            elements.searchInput.focus();
+            console.log('🧹 ล้างการค้นหาแล้ว');
+        }
+
+        function copyResultToClipboard(data) {
+            let text = 'ข้อมูลแปลงที่ค้นพบ:\n\n';
+            
+            for (const key in data) {
+                if (!key.startsWith('_')) {
+                    text += `${key}: ${data[key] || '(ไม่มีข้อมูล)'}\n`;
+                }
+            }
+            
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    showMessage('success', 'คัดลอกข้อมูลไปยังคลิปบอร์ดแล้ว');
+                })
+                .catch(err => {
+                    console.error('❌ คัดลอกข้อมูลล้มเหลว:', err);
+                    showMessage('error', 'ไม่สามารถคัดลอกข้อมูลได้');
+                });
+        }
+
+        // ============================================
+        // 10. ตั้งค่า Event Listeners
+        // ============================================
+        function setupEventListeners() {
+            console.log('🔌 กำลังตั้งค่า Event Listeners...');
+            
+            // ปุ่มค้นหา
+            elements.searchBtn.addEventListener('click', performSearch);
+            
+            // ปุ่มล้าง
+            elements.clearBtn.addEventListener('click', clearSearch);
+            
+            // ปุ่มโหลดข้อมูล
+            elements.loadDataBtn.addEventListener('click', function() {
+                showLoading(true);
+                setTimeout(() => {
+                    loadSampleData();
+                    showLoading(false);
+                }, 1000);
+            });
+            
+            // ปุ่มทดสอบ
+            elements.testBtn.addEventListener('click', testSystem);
+            
+            // ปุ่มล้างประวัติ
+            elements.clearHistoryBtn.addEventListener('click', clearSearchHistory);
+            
+            // กด Enter ในช่องค้นหา
+            elements.searchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    performSearch();
+                }
+            });
+            
+            console.log('✅ ตั้งค่า Event Listeners เสร็จสิ้น');
+        }
+
+        // ============================================
+        // 11. เริ่มต้นระบบ
+        // ============================================
+        function initializeSystem() {
+            console.log('🚀 กำลังเริ่มต้นระบบค้นหา...');
+            
+            // ตั้งค่า Event Listeners
+            setupEventListeners();
+            
+            // โหลดข้อมูลตัวอย่าง
+            loadSampleData();
+            
+            // อัปเดตประวัติการค้นหา
+            updateHistoryDisplay();
+            
+            // ตั้งค่าสถานะระบบ
+            systemReady = true;
+            updateSystemStatus();
+            
+            // Focus ที่ช่องค้นหา
+            elements.searchInput.focus();
+            
+            // แสดงข้อความต้อนรับ
+            setTimeout(() => {
+                showMessage('info', 'ระบบพร้อมใช้งาน! ลองคลิกปุ่มตัวอย่างเพื่อค้นหา', 10000);
+                console.log('🎉 ระบบพร้อมใช้งานแล้ว!');
+            }, 1500);
+        }
+
+        // ============================================
+        // 12. เริ่มต้นระบบเมื่อหน้าโหลดเสร็จ
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 หน้าเว็บโหลดเสร็จแล้ว');
+            setTimeout(initializeSystem, 500);
+        });
+
+        // ============================================
+        // 13. ทำให้ฟังก์ชันหลักสามารถเรียกใช้จาก Console ได้
+        // ============================================
+        window.performSearch = performSearch;
+        window.clearSearch = clearSearch;
+        window.testSystem = testSystem;
+        window.loadSampleData = loadSampleData;
+        window.sheetData = sheetData;
+    </script>
+</body>
+</html>
