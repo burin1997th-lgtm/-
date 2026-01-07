@@ -3,130 +3,436 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแสดงข้อมูล Google Sheet ภาษาไทย</title>
+    <title>ระบบค้นหาเลขแปลง IN-TECH</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+        }
+        
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            font-family: 'Sarabun', sans-serif;
+            font-family: 'Sarabun', 'Kanit', sans-serif;
         }
-        .container {
+        
+        .main-container {
             background: white;
             border-radius: 15px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
             margin-bottom: 20px;
         }
+        
+        .header-section {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .header-section h1 {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header-section p {
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+        
+        .search-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .search-card .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .data-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .data-card .card-header {
+            background: #2d3748;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
         .table th {
-            background-color: #4e73df;
+            background-color: var(--primary-color);
             color: white;
             position: sticky;
             top: 0;
             font-size: 14px;
+            font-weight: 600;
+            border: none;
+            padding: 12px 15px;
         }
+        
         .table td {
             font-size: 13px;
             vertical-align: middle;
+            padding: 10px 15px;
+            border-bottom: 1px solid #dee2e6;
         }
+        
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.1);
+            cursor: pointer;
+        }
+        
         .btn {
             border-radius: 8px;
             font-weight: 500;
+            padding: 10px 20px;
+            transition: all 0.3s;
+            border: none;
         }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #13855c 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #dda20a 100%);
+            color: #000;
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, var(--info-color) 0%, #258391 100%);
+        }
+        
+        .btn-outline-danger {
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+        
+        .btn-outline-info {
+            border: 1px solid var(--info-color);
+            color: var(--info-color);
+        }
+        
         #loading {
             text-align: center;
             padding: 50px;
         }
+        
         .spinner-border {
             width: 3rem;
             height: 3rem;
         }
+        
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card h6 {
+            color: var(--secondary-color);
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        
+        .stats-card h3 {
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+        
+        .stats-primary h3 { color: var(--primary-color); }
+        .stats-success h3 { color: var(--success-color); }
+        .stats-info h3 { color: var(--info-color); }
+        
+        .badge {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 10px;
+            }
+            
+            .main-container {
+                padding: 15px;
+            }
+            
+            .header-section {
+                padding: 20px 15px;
+            }
+            
+            .header-section h1 {
+                font-size: 24px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            .table-responsive {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h2><i class="fas fa-table me-2"></i>ระบบแสดงข้อมูลจาก Google Sheet</h2>
-            <p class="mb-0">โครงการผ่ากล | Sheet: <strong>สถานะ</strong></p>
-        </div>
-        
-        <div id="message"></div>
-        
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="searchInput" placeholder="ค้นหาเลขแปลง, ชื่อเกษตรกร...">
-                            <button class="btn btn-primary" id="searchBtn">
-                                <i class="fas fa-search"></i> ค้นหา
-                            </button>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <!-- Header Section -->
+                <div class="main-container">
+                    <div class="header-section">
+                        <h1><i class="fas fa-search-location me-2"></i>ระบบค้นหาเลขแปลง IN-TECH</h1>
+                        <p>โครงการผ่ากล | แสดงข้อมูลจาก Google Sheet: <strong>สถานะ</strong></p>
+                    </div>
+                    
+                    <!-- Messages Container -->
+                    <div id="messages"></div>
+                    
+                    <!-- Search Section -->
+                    <div class="search-card card">
+                        <div class="card-header">
+                            <i class="fas fa-search me-2"></i> ค้นหาเลขแปลง IN-TECH
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-hashtag me-1"></i> ค้นหาเลขแปลง
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" id="searchInput" class="form-control" 
+                                               placeholder="เช่น 1000114511, 4000153585">
+                                        <button id="searchIntechBtn" class="btn btn-primary">
+                                            <i class="fas fa-search"></i> ค้นหา
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">ค้นหาในคอลัมน์: เลขแปลงและยกั, เลขโครงขา้, ชื่อราคาไฟ</small>
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-search me-1"></i> ค้นหาทั่วไป
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" id="generalSearchInput" class="form-control" 
+                                               placeholder="ชื่อเกษตรกร, เขต, พันธ์">
+                                        <button id="searchGeneralBtn" class="btn btn-secondary">
+                                            <i class="fas fa-search"></i> ค้นหา
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="btn-group mt-2">
+                                        <button id="loadDataBtn" class="btn btn-success">
+                                            <i class="fas fa-sync"></i> โหลดข้อมูล
+                                        </button>
+                                        <button id="testThaiBtn" class="btn btn-warning">
+                                            <i class="fas fa-vial"></i> ทดสอบ
+                                        </button>
+                                        <button id="viewRawBtn" class="btn btn-info">
+                                            <i class="fas fa-code"></i> ดูข้อมูลดิบ
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="btn-group mt-2">
+                                        <button id="clearSearchBtn" class="btn btn-outline-danger">
+                                            <i class="fas fa-times"></i> ล้างการค้นหา
+                                        </button>
+                                        <button id="viewHistoryBtn" class="btn btn-outline-info">
+                                            <i class="fas fa-history"></i> ประวัติ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="btn-group">
-                            <button class="btn btn-success" id="loadDataBtn">
-                                <i class="fas fa-sync"></i> โหลดข้อมูล
-                            </button>
-                            <button class="btn btn-warning" id="testThaiBtn">
-                                <i class="fas fa-vial"></i> ทดสอบ
-                            </button>
-                            <button class="btn btn-info" id="viewRawBtn">
-                                <i class="fas fa-code"></i> ดูข้อมูลดิบ
-                            </button>
+                    
+                    <!-- Search Results -->
+                    <div id="searchResults"></div>
+                    
+                    <!-- Statistics -->
+                    <div id="stats" class="row mb-4">
+                        <!-- Stats will be populated by JavaScript -->
+                    </div>
+                    
+                    <!-- Available Columns -->
+                    <div id="availableColumns" class="mb-4"></div>
+                    
+                    <!-- Loading State -->
+                    <div id="loading" style="display: none;">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary"></div>
+                            <p class="mt-3">กำลังโหลดข้อมูลจาก Google Sheet...</p>
+                            <p class="text-muted small">กรุณารอสักครู่</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Table -->
+                    <div class="data-card card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-table me-2"></i>ข้อมูลทั้งหมด
+                                <span id="dataInfo" class="ms-2 small text-light"></span>
+                            </div>
+                            <div class="badge bg-light text-dark">
+                                <i class="fas fa-clock me-1"></i>
+                                <span id="currentTime"></span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="dataTable">
+                                <!-- Data will be populated here -->
+                                <div class="text-center py-5">
+                                    <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                                    <h5>ยังไม่มีข้อมูล</h5>
+                                    <p class="text-muted">กดปุ่ม "โหลดข้อมูล" เพื่อเริ่มต้น</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div id="stats" class="mb-3"></div>
-                
-                <div id="loading" style="display: none;">
-                    <div class="spinner-border text-primary"></div>
-                    <p class="mt-2">กำลังโหลดข้อมูลภาษาไทย...</p>
+                <!-- Footer -->
+                <div class="footer">
+                    <p>
+                        ระบบค้นหาเลขแปลง IN-TECH | โครงการผ่ากล 
+                        | อัปเดตล่าสุด: <span id="updateTime"></span>
+                    </p>
+                    <p class="small">
+                        พัฒนาด้วย Google Sheets API & Bootstrap 5
+                    </p>
                 </div>
-                
-                <div id="dataTable">
-                    <!-- ข้อมูลจะแสดงที่นี่ -->
-                    <div class="alert alert-light text-center">
-                        <i class="fas fa-database fa-3x text-muted mb-3"></i>
-                        <h5>ยังไม่มีข้อมูล</h5>
-                        <p>กดปุ่ม "โหลดข้อมูล" เพื่อเริ่มต้น</p>
-                    </div>
-                </div>
-                
-                <div id="dataInfo" class="mt-3 text-center"></div>
             </div>
         </div>
-        
-        <div class="text-center text-muted small">
-            <p>ระบบดึงข้อมูลจาก Google Sheet | อัปเดตล่าสุด: <span id="currentTime"></span></p>
-        </div>
     </div>
-    
+
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="script.js"></script>
+    
     <script>
-        // แสดงเวลาปัจจุบัน
+        // Update time function
         function updateTime() {
             const now = new Date();
-            const timeStr = now.toLocaleString('th-TH', {
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit'
-            });
-            $('#currentTime').text(timeStr);
+                second: '2-digit',
+                hour12: false
+            };
+            
+            const timeStr = now.toLocaleString('th-TH', options);
+            $('#currentTime').text(now.toLocaleTimeString('th-TH'));
+            $('#updateTime').text(timeStr);
         }
+        
+        // Update time every second
         setInterval(updateTime, 1000);
         updateTime();
+        
+        // Keyboard shortcuts
+        $(document).keydown(function(e) {
+            // Ctrl + F = Focus on search input
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                $('#searchInput').focus();
+            }
+            
+            // Ctrl + R = Reload data
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                $('#loadDataBtn').click();
+            }
+            
+            // Esc = Clear search
+            if (e.key === 'Escape') {
+                $('#clearSearchBtn').click();
+            }
+        });
+        
+        // Auto-focus on search input
+        $(document).ready(function() {
+            setTimeout(() => {
+                $('#searchInput').focus();
+            }, 500);
+        });
     </script>
 </body>
 </html>
