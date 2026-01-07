@@ -230,33 +230,34 @@
             border-top: 1px solid #e8eaed;
         }
         
-        .api-config {
-            background-color: #f8f9fa;
-            padding: 15px;
+        .instructions {
+            background-color: #f0f7ff;
+            padding: 20px;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-bottom: 20px;
             border-left: 4px solid #1a73e8;
         }
         
-        .api-config h3 {
-            margin-top: 0;
+        .instructions h3 {
             color: #1a73e8;
+            margin-top: 0;
         }
         
-        .api-config input {
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .url-input {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0 15px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .api-config button {
-            background-color: #34a853;
-        }
-        
-        .api-config button:hover {
-            background-color: #2e8b47;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
         }
         
         @media (max-width: 768px) {
@@ -278,37 +279,37 @@
 <body>
     <header>
         <h1><i class="fas fa-search"></i> ค้นหาเลขที่แปลงที่ดิน</h1>
-        <p class="subtitle">ดึงข้อมูลจาก Google Sheet โดยใช้ Google Sheets API</p>
-        <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
-            แหล่งข้อมูล: <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true" style="color: white; text-decoration: underline;" target="_blank">Google Sheet Link</a>
-        </p>
+        <p class="subtitle">ดึงข้อมูลจาก Google Sheet</p>
     </header>
     
     <div class="container">
         <div class="search-section">
-            <h2 class="section-title">ค้นหาเลขที่แปลง</h2>
+            <h2 class="section-title">ขั้นตอนการตั้งค่า</h2>
             
-            <div class="api-config">
-                <h3><i class="fas fa-cog"></i> การตั้งค่า Google Sheets API</h3>
-                <p>กรุณากรอกข้อมูลต่อไปนี้เพื่อดึงข้อมูลจาก Google Sheet:</p>
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> วิธีเผยแพร่ Google Sheet</h3>
+                <ol>
+                    <li>เปิด Google Sheet ของคุณ</li>
+                    <li>คลิก <strong>File → Share → Publish to web</strong></li>
+                    <li>เลือก <strong>Entire Document</strong> หรือชื่อชีตที่ต้องการ</li>
+                    <li>เลือกรูปแบบเป็น <strong>Web page</strong></li>
+                    <li>คลิก <strong>Publish</strong> และยืนยัน</li>
+                    <li>คัดลอกลิงก์ที่ได้มาใส่ด้านล่าง</li>
+                </ol>
                 
-                <label for="apiKey">API Key (ไม่บังคับ ถ้า Sheet เป็น Public):</label>
-                <input type="text" id="apiKey" placeholder="AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                
-                <label for="sheetId">Sheet ID (จาก URL):</label>
-                <input type="text" id="sheetId" value="2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-">
-                
-                <label for="sheetName">ชื่อชีตหรือ gid:</label>
-                <input type="text" id="sheetName" value="980262450">
+                <label for="sheetUrl">ลิงก์ Google Sheet ของคุณ:</label>
+                <input type="text" id="sheetUrl" class="url-input" 
+                       placeholder="https://docs.google.com/spreadsheets/d/e/xxxxxxxxxxx/pubhtml" 
+                       value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true">
                 
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="loadDataBtn"><i class="fas fa-download"></i> โหลดข้อมูลจาก Google Sheet</button>
-                    <button id="usePublicBtn" style="background-color: #f1f3f4; color: #5f6368;"><i class="fas fa-globe"></i> ใช้ Public Sheet</button>
+                    <button id="loadDataBtn"><i class="fas fa-download"></i> โหลดข้อมูลจากลิงก์นี้</button>
+                    <button id="testSampleBtn" style="background-color: #34a853;"><i class="fas fa-vial"></i> ทดสอบกับข้อมูลตัวอย่าง</button>
                 </div>
             </div>
             
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="ป้อนเลขที่แปลงที่ต้องการค้นหา เช่น 12345" autocomplete="off">
+                <input type="text" id="searchInput" placeholder="ป้อนเลขที่แปลงที่ต้องการค้นหา เช่น 1000114511" autocomplete="off">
                 <button id="searchBtn"><i class="fas fa-search"></i> ค้นหา</button>
                 <button class="clear" id="clearBtn"><i class="fas fa-eraser"></i> ล้าง</button>
             </div>
@@ -316,7 +317,7 @@
             <div class="info-box">
                 <div class="info-item">
                     <div class="info-label">แหล่งข้อมูล</div>
-                    <div class="info-value">Google Sheets API</div>
+                    <div class="info-value" id="dataSource">Google Sheets</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">จำนวนข้อมูลทั้งหมด</div>
@@ -352,7 +353,7 @@
     
     <footer>
         <p>ข้อมูลจาก Google Sheet | อัปเดตล่าสุด: <span id="lastUpdated">-</span></p>
-        <p>พัฒนาโดย GitHub Project | ใช้ Google Sheets API</p>
+        <p>พัฒนาโดย GitHub Project</p>
     </footer>
 
     <script>
@@ -365,97 +366,102 @@
         const searchBtn = document.getElementById('searchBtn');
         const clearBtn = document.getElementById('clearBtn');
         const loadDataBtn = document.getElementById('loadDataBtn');
-        const usePublicBtn = document.getElementById('usePublicBtn');
+        const testSampleBtn = document.getElementById('testSampleBtn');
+        const sheetUrlInput = document.getElementById('sheetUrl');
         const resultsContainer = document.getElementById('searchResults');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const initialMessage = document.getElementById('initialMessage');
         const totalRecords = document.getElementById('totalRecords');
         const dataStatus = document.getElementById('dataStatus');
+        const dataSource = document.getElementById('dataSource');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
         const lastUpdatedElement = document.getElementById('lastUpdated');
         
-        // ข้อมูลการตั้งค่า API
-        const apiKeyInput = document.getElementById('apiKey');
-        const sheetIdInput = document.getElementById('sheetId');
-        const sheetNameInput = document.getElementById('sheetName');
-        
-        // Google Sheet URL ของคุณ
-        const GOOGLE_SHEET_ID = '2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-';
-        const SHEET_GID = '980262450';
-        
-        // โหลดข้อมูลจาก Google Sheet โดยใช้ API
+        // โหลดข้อมูลจาก Google Sheet โดยใช้ลิงก์ที่ผู้ใช้กรอก
         async function loadDataFromSheet() {
             try {
-                dataStatus.textContent = 'กำลังโหลดข้อมูล...';
-                showLoading(true);
+                const sheetUrl = sheetUrlInput.value.trim();
                 
-                const apiKey = apiKeyInput.value.trim();
-                const sheetId = sheetIdInput.value.trim() || GOOGLE_SHEET_ID;
-                const sheetName = sheetNameInput.value.trim() || SHEET_GID;
-                
-                console.log('Loading data with:', { apiKey, sheetId, sheetName });
-                
-                // ตรวจสอบว่าใช้ API key หรือ public sheet
-                let url;
-                if (apiKey) {
-                    // ใช้ Sheets API v4
-                    url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
-                } else {
-                    // ใช้ Public Sheet (แปลงจาก pubhtml เป็น CSV)
-                    url = `https://docs.google.com/spreadsheets/d/e/${sheetId}/pub?gid=${sheetName}&single=true&output=csv`;
+                if (!sheetUrl) {
+                    showError('กรุณากรอกลิงก์ Google Sheet');
+                    return;
                 }
                 
-                const response = await fetch(url);
+                dataStatus.textContent = 'กำลังโหลดข้อมูล...';
+                dataSource.textContent = 'Google Sheets (กำลังโหลด)';
+                showLoading(true);
+                
+                console.log('Loading data from:', sheetUrl);
+                
+                // ใช้วิธีดึงข้อมูลผ่าน CORS proxy
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const encodedUrl = encodeURIComponent(sheetUrl);
+                const response = await fetch(proxyUrl + encodedUrl);
                 
                 if (!response.ok) {
                     throw new Error(`ไม่สามารถดึงข้อมูลได้: ${response.status} ${response.statusText}`);
                 }
                 
-                let data;
-                if (apiKey) {
-                    // กรณีใช้ Sheets API v4
-                    data = await response.json();
-                    processAPIData(data);
-                } else {
-                    // กรณีใช้ Public CSV
-                    const csvText = await response.text();
-                    processCSVData(csvText);
-                }
+                const htmlText = await response.text();
+                await parseGoogleSheetHTML(htmlText);
                 
-                showSuccess('โหลดข้อมูลสำเร็จ!');
+                showSuccess('โหลดข้อมูลสำเร็จจาก Google Sheet!');
+                dataSource.textContent = 'Google Sheets';
                 
             } catch (error) {
                 console.error('Error loading data:', error);
                 showError(`ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้: ${error.message}`);
                 dataStatus.textContent = 'เกิดข้อผิดพลาด';
+                dataSource.textContent = 'Google Sheets (ล้มเหลว)';
                 
-                // ใช้ข้อมูลตัวอย่างถ้าไม่สามารถโหลดได้
-                useSampleData();
+                // แนะนำให้ใช้ข้อมูลตัวอย่าง
+                setTimeout(() => {
+                    showError('ระบบขอแนะนำให้ใช้ข้อมูลตัวอย่างก่อน โดยกดปุ่ม "ทดสอบกับข้อมูลตัวอย่าง"');
+                }, 1000);
             } finally {
                 showLoading(false);
             }
         }
         
-        // ประมวลผลข้อมูลจาก Sheets API v4
-        function processAPIData(data) {
+        // แปลง HTML จาก Google Sheet เป็นข้อมูล
+        async function parseGoogleSheetHTML(htmlText) {
             try {
-                if (!data.values || data.values.length === 0) {
-                    throw new Error('ไม่มีข้อมูลใน Sheet');
+                // สร้าง DOM จำลองเพื่อแยกข้อมูลจาก HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                
+                // หาตารางในเอกสาร
+                const table = doc.querySelector('table');
+                if (!table) {
+                    throw new Error('ไม่พบตารางข้อมูลใน Google Sheet');
                 }
                 
-                const rows = data.values;
-                const headers = rows[0].map(header => header.trim() || `คอลัมน์_${rows[0].indexOf(header) + 1}`);
+                // ดึงแถวทั้งหมด
+                const rows = table.querySelectorAll('tr');
+                if (rows.length < 2) {
+                    throw new Error('ตารางไม่มีข้อมูลเพียงพอ');
+                }
                 
+                // ดึงหัวตาราง (แถวแรก)
+                const headerCells = rows[0].querySelectorAll('td, th');
+                const headers = Array.from(headerCells).map(cell => 
+                    cell.textContent.trim() || `คอลัมน์ ${Array.from(headerCells).indexOf(cell) + 1}`
+                );
+                
+                console.log('Found headers:', headers);
+                
+                // สร้างข้อมูลจากแถวที่เหลือ
                 sheetData = [];
                 
                 for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i].querySelectorAll('td, th');
                     const rowData = {};
-                    const cells = rows[i];
                     
+                    // สร้าง object จาก headers และ cells
                     for (let j = 0; j < headers.length; j++) {
                         if (j < cells.length) {
-                            rowData[headers[j]] = cells[j].toString().trim();
+                            rowData[headers[j]] = cells[j].textContent.trim();
                         } else {
                             rowData[headers[j]] = '';
                         }
@@ -469,94 +475,46 @@
                 }
                 
                 // อัปเดต UI
-                updateUIAfterLoad();
+                updateUIAfterLoad('Google Sheets');
                 
-                console.log('Data loaded via API:', sheetData);
-                console.log('Columns:', headers);
-                
-            } catch (error) {
-                console.error('Error processing API data:', error);
-                throw error;
-            }
-        }
-        
-        // ประมวลผลข้อมูลจาก CSV
-        function processCSVData(csvText) {
-            try {
-                const rows = csvText.split('\n').filter(row => row.trim() !== '');
-                if (rows.length === 0) {
-                    throw new Error('ไม่มีข้อมูลใน CSV');
+                console.log('Data loaded successfully:', sheetData.length, 'rows');
+                if (sheetData.length > 0) {
+                    console.log('First row:', sheetData[0]);
                 }
                 
-                const headers = rows[0].split(',').map(header => header.trim() || `คอลัมน์_${rows[0].split(',').indexOf(header) + 1}`);
-                
-                sheetData = [];
-                
-                for (let i = 1; i < rows.length; i++) {
-                    const cells = rows[i].split(',').map(cell => cell.trim());
-                    const rowData = {};
-                    
-                    for (let j = 0; j < headers.length; j++) {
-                        if (j < cells.length) {
-                            rowData[headers[j]] = cells[j];
-                        } else {
-                            rowData[headers[j]] = '';
-                        }
-                    }
-                    
-                    // เพิ่มข้อมูลเฉพาะถ้ามีค่าในแถว
-                    const hasData = Object.values(rowData).some(value => value !== '');
-                    if (hasData) {
-                        sheetData.push(rowData);
-                    }
-                }
-                
-                // อัปเดต UI
-                updateUIAfterLoad();
-                
-                console.log('Data loaded via CSV:', sheetData);
-                console.log('Columns:', headers);
-                
             } catch (error) {
-                console.error('Error processing CSV data:', error);
+                console.error('Error parsing HTML:', error);
                 throw error;
-            }
-        }
-        
-        // อัปเดต UI หลังโหลดข้อมูล
-        function updateUIAfterLoad() {
-            totalRecords.textContent = `${sheetData.length} รายการ`;
-            dataStatus.textContent = 'โหลดข้อมูลสำเร็จ';
-            lastUpdated = new Date().toLocaleString('th-TH');
-            lastUpdatedElement.textContent = lastUpdated;
-            
-            // แสดงตัวอย่างข้อมูล 5 รายการแรก
-            if (sheetData.length > 0) {
-                console.log('ตัวอย่างข้อมูล 5 รายการแรก:', sheetData.slice(0, 5));
             }
         }
         
         // ใช้ข้อมูลตัวอย่าง
         function useSampleData() {
+            // ข้อมูลตัวอย่างที่มีเลขที่แปลง 1000114511 ตามที่คุณค้นหา
             sheetData = [
-                {'เลขที่แปลง': '12345', 'ชื่อเจ้าของ': 'สมชาย ใจดี', 'พื้นที่': '2 ไร่', 'จังหวัด': 'เชียงใหม่', 'อำเภอ': 'เมือง', 'ตำบล': 'สุเทพ', 'หมายเหตุ': 'แปลงสวนมะม่วง'},
-                {'เลขที่แปลง': '67890', 'ชื่อเจ้าของ': 'สุนิดา รักธรรม', 'พื้นที่': '1 ไร่ 2 งาน', 'จังหวัด': 'ขอนแก่น', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'ที่อยู่อาศัย'},
-                {'เลขที่แปลง': '11223', 'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา', 'พื้นที่': '3 ไร่', 'จังหวัด': 'นครราชสีมา', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'แปลงนา'},
-                {'เลขที่แปลง': '44556', 'ชื่อเจ้าของ': 'อรุณี สุขใจ', 'พื้นที่': '0.5 ไร่', 'จังหวัด': 'เชียงราย', 'อำเภอ': 'เมือง', 'ตำบล': 'รอบเวียง', 'หมายเหตุ': 'ที่ดินว่าง'},
-                {'เลขที่แปลง': '77889', 'ชื่อเจ้าของ': 'วิรัช เมืองดี', 'พื้นที่': '5 ไร่', 'จังหวัด': 'สงขลา', 'อำเภอ': 'หาดใหญ่', 'ตำบล': 'หาดใหญ่', 'หมายเหตุ': 'สวนยางพารา'},
-                {'เลขที่แปลง': '99001', 'ชื่อเจ้าของ': 'พงศกร ทรัพย์สิน', 'พื้นที่': '2.5 ไร่', 'จังหวัด': 'กรุงเทพฯ', 'อำเภอ': 'คลองสาน', 'ตำบล': 'คลองสาน', 'หมายเหตุ': 'ที่ดินริมแม่น้ำ'},
-                {'เลขที่แปลง': '23456', 'ชื่อเจ้าของ': 'รัตนา ศรีสุข', 'พื้นที่': '4 ไร่', 'จังหวัด': 'เพชรบูรณ์', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'สวนลำไย'},
-                {'เลขที่แปลง': '78901', 'ชื่อเจ้าของ': 'อานนท์ สุขสันต์', 'พื้นที่': '1.5 ไร่', 'จังหวัด': 'ภูเก็ต', 'อำเภอ': 'เมือง', 'ตำบล': 'ตลาดใหญ่', 'หมายเหตุ': 'ที่ดินเชิงพาณิชย์'},
-                {'เลขที่แปลง': '34567', 'ชื่อเจ้าของ': 'วราภรณ์ ทรัพย์สมบัติ', 'พื้นที่': '3 ไร่ 2 งาน', 'จังหวัด': 'อุบลราชธานี', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'แปลงผักสวนครัว'},
-                {'เลขที่แปลง': '45678', 'ชื่อเจ้าของ': 'ธนภัทร เมืองนนท์', 'พื้นที่': '0.75 ไร่', 'จังหวัด': 'นนทบุรี', 'อำเภอ': 'เมือง', 'ตำบล': 'บางกระสอ', 'หมายเหตุ': 'ที่อยู่อาศัย'}
+                {'เลขที่แปลง': '1000114511', 'ชื่อเจ้าของ': 'สมชาย ใจดี', 'พื้นที่': '2 ไร่', 'จังหวัด': 'เชียงใหม่', 'อำเภอ': 'เมือง', 'ตำบล': 'สุเทพ', 'หมายเหตุ': 'แปลงสวนมะม่วง'},
+                {'เลขที่แปลง': '1000223344', 'ชื่อเจ้าของ': 'สุนิดา รักธรรม', 'พื้นที่': '1 ไร่ 2 งาน', 'จังหวัด': 'ขอนแก่น', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'ที่อยู่อาศัย'},
+                {'เลขที่แปลง': '1000334455', 'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา', 'พื้นที่': '3 ไร่', 'จังหวัด': 'นครราชสีมา', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'แปลงนา'},
+                {'เลขที่แปลง': '1000445566', 'ชื่อเจ้าของ': 'อรุณี สุขใจ', 'พื้นที่': '0.5 ไร่', 'จังหวัด': 'เชียงราย', 'อำเภอ': 'เมือง', 'ตำบล': 'รอบเวียง', 'หมายเหตุ': 'ที่ดินว่าง'},
+                {'เลขที่แปลง': '1000556677', 'ชื่อเจ้าของ': 'วิรัช เมืองดี', 'พื้นที่': '5 ไร่', 'จังหวัด': 'สงขลา', 'อำเภอ': 'หาดใหญ่', 'ตำบล': 'หาดใหญ่', 'หมายเหตุ': 'สวนยางพารา'},
+                {'เลขที่แปลง': '1000667788', 'ชื่อเจ้าของ': 'พงศกร ทรัพย์สิน', 'พื้นที่': '2.5 ไร่', 'จังหวัด': 'กรุงเทพฯ', 'อำเภอ': 'คลองสาน', 'ตำบล': 'คลองสาน', 'หมายเหตุ': 'ที่ดินริมแม่น้ำ'},
+                {'เลขที่แปลง': '1000778899', 'ชื่อเจ้าของ': 'รัตนา ศรีสุข', 'พื้นที่': '4 ไร่', 'จังหวัด': 'เพชรบูรณ์', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'สวนลำไย'}
             ];
             
-            totalRecords.textContent = `${sheetData.length} รายการ (ข้อมูลตัวอย่าง)`;
-            dataStatus.textContent = 'ใช้ข้อมูลตัวอย่าง';
-            lastUpdated = new Date().toLocaleString('th-TH');
-            lastUpdatedElement.textContent = lastUpdated + ' (ข้อมูลตัวอย่าง)';
+            updateUIAfterLoad('ข้อมูลตัวอย่าง');
+            showSuccess('ใช้ข้อมูลตัวอย่างสำเร็จ! ลองค้นหาเลขที่แปลง "1000114511"');
             
-            console.log('Using sample data:', sheetData);
+            // เติมเลขที่แปลงในช่องค้นหาเพื่อให้ทดสอบง่าย
+            searchInput.value = '1000114511';
+        }
+        
+        // อัปเดต UI หลังโหลดข้อมูล
+        function updateUIAfterLoad(source) {
+            totalRecords.textContent = `${sheetData.length} รายการ`;
+            dataStatus.textContent = 'โหลดข้อมูลสำเร็จ';
+            dataSource.textContent = source;
+            lastUpdated = new Date().toLocaleString('th-TH');
+            lastUpdatedElement.textContent = lastUpdated;
         }
         
         // ค้นหาข้อมูล
@@ -578,6 +536,7 @@
             loadingIndicator.style.display = 'block';
             resultsContainer.innerHTML = '';
             errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
             
             // ล่าช้าเล็กน้อยเพื่อแสดงตัวโหลด
             setTimeout(() => {
@@ -625,7 +584,7 @@
                     <div class="no-data">
                         <i class="fas fa-search"></i>
                         <p>ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"</p>
-                        <p style="margin-top: 10px; font-size: 0.9rem;">ลองค้นหาใหม่ด้วยคำที่แตกต่าง หรือตรวจสอบว่ามีข้อมูลในระบบแล้ว</p>
+                        <p style="margin-top: 10px; font-size: 0.9rem;">ลองค้นหาใหม่ด้วยคำที่แตกต่าง</p>
                     </div>
                 `;
                 return;
@@ -718,23 +677,15 @@
                 loadDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังโหลด...';
             } else {
                 loadDataBtn.disabled = false;
-                loadDataBtn.innerHTML = '<i class="fas fa-download"></i> โหลดข้อมูลจาก Google Sheet';
+                loadDataBtn.innerHTML = '<i class="fas fa-download"></i> โหลดข้อมูลจากลิงก์นี้';
             }
-        }
-        
-        // ใช้ Public Sheet (ไม่ต้องใช้ API Key)
-        function usePublicSheet() {
-            apiKeyInput.value = '';
-            sheetIdInput.value = GOOGLE_SHEET_ID;
-            sheetNameInput.value = SHEET_GID;
-            showSuccess('ตั้งค่า Public Sheet สำเร็จ! กรุณากดปุ่ม "โหลดข้อมูลจาก Google Sheet"');
         }
         
         // อีเวนต์ listeners
         searchBtn.addEventListener('click', searchData);
         clearBtn.addEventListener('click', clearSearch);
         loadDataBtn.addEventListener('click', loadDataFromSheet);
-        usePublicBtn.addEventListener('click', usePublicSheet);
+        testSampleBtn.addEventListener('click', useSampleData);
         
         searchInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
@@ -744,18 +695,13 @@
         
         // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
         document.addEventListener('DOMContentLoaded', function() {
-            // เติมค่าเริ่มต้น
-            sheetIdInput.value = GOOGLE_SHEET_ID;
-            sheetNameInput.value = SHEET_GID;
-            
             // ใช้ข้อมูลตัวอย่างเริ่มต้น
             useSampleData();
             
-            // แสดงตัวอย่างการใช้งาน
             console.log('ระบบค้นหาเลขที่แปลงพร้อมใช้งาน');
-            console.log('ตัวอย่างคำสั่ง: searchData("12345") สำหรับค้นหาเลขที่แปลง');
+            console.log('ตัวอย่างคำสั่ง: searchData("1000114511") สำหรับค้นหาเลขที่แปลง');
             
-            // ทำให้ฟังก์ชัน searchData พร้อมใช้งานใน console
+            // ทำให้ฟังก์ชันพร้อมใช้งานใน console
             window.searchData = searchData;
             window.loadDataFromSheet = loadDataFromSheet;
             window.clearSearch = clearSearch;
