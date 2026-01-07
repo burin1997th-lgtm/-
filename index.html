@@ -241,6 +241,9 @@
     <header>
         <h1><i class="fas fa-search"></i> ค้นหาเลขที่แปลงที่ดิน</h1>
         <p class="subtitle">ดึงข้อมูลจาก Google Sheet และค้นหาเลขที่แปลงที่ต้องการ</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+            แหล่งข้อมูล: <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true" style="color: white; text-decoration: underline;" target="_blank">Google Sheet Link</a>
+        </p>
     </header>
     
     <div class="container">
@@ -310,24 +313,23 @@
         const errorMessage = document.getElementById('errorMessage');
         const lastUpdatedElement = document.getElementById('lastUpdated');
         
-        // URL ของ Google Sheet (แปลงจาก pubhtml เป็น csv สำหรับดึงข้อมูล)
-        const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pub?gid=980262450&single=true&output=csv';
+        // URL ของ Google Sheet (รูปแบบ pubhtml)
+        const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true';
         
         // โหลดข้อมูลจาก Google Sheet
         async function loadDataFromSheet() {
             try {
                 dataStatus.textContent = 'กำลังโหลดข้อมูล...';
                 
-                // ใช้ CORS proxy เพื่อหลีกเลี่ยงปัญหา CORS
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const response = await fetch(proxyUrl + googleSheetUrl);
+                // ใช้วิธีดึงข้อมูล HTML จาก Google Sheet
+                const response = await fetch(googleSheetUrl);
                 
                 if (!response.ok) {
                     throw new Error(`ไม่สามารถดึงข้อมูลได้: ${response.status}`);
                 }
                 
-                const csvText = await response.text();
-                parseCSVData(csvText);
+                const htmlText = await response.text();
+                parseHTMLData(htmlText);
                 
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -339,30 +341,52 @@
             }
         }
         
-        // แปลง CSV เป็นข้อมูลที่ใช้ได้
-        function parseCSVData(csvText) {
+        // แปลง HTML Table เป็นข้อมูลที่ใช้ได้
+        function parseHTMLData(htmlText) {
             try {
-                const rows = csvText.split('\n');
-                const headers = rows[0].split(',').map(header => header.trim());
+                // สร้าง DOM parser เพื่อแยกข้อมูลจาก HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
                 
-                // หาคอลัมน์ที่อาจมีเลขที่แปลง
-                const possibleLotNumberColumns = ['เลขที่แปลง', 'แปลงที่', 'แปลง', 'Lot', 'lot', 'แปลงที่ดิน', 'ที่ดินแปลงที่'];
+                // หาตารางในเอกสาร
+                const table = doc.querySelector('table');
+                if (!table) {
+                    throw new Error('ไม่พบตารางข้อมูลใน Google Sheet');
+                }
                 
-                // สร้างข้อมูลจากแถว
+                // ดึงแถวทั้งหมด
+                const rows = table.querySelectorAll('tr');
+                if (rows.length < 2) {
+                    throw new Error('ตารางไม่มีข้อมูลเพียงพอ');
+                }
+                
+                // ดึงหัวตาราง (แถวแรก)
+                const headerRow = rows[0];
+                const headers = Array.from(headerRow.querySelectorAll('td, th')).map(cell => 
+                    cell.textContent.trim() || `คอลัมน์ ${Array.from(headerRow.children).indexOf(cell) + 1}`
+                );
+                
+                // สร้างข้อมูลจากแถวที่เหลือ
                 sheetData = [];
                 
                 for (let i = 1; i < rows.length; i++) {
-                    if (rows[i].trim() === '') continue;
-                    
-                    const cells = rows[i].split(',').map(cell => cell.trim());
+                    const cells = rows[i].querySelectorAll('td, th');
                     const rowData = {};
                     
                     // สร้าง object จาก headers และ cells
                     for (let j = 0; j < headers.length; j++) {
-                        rowData[headers[j]] = cells[j] || '';
+                        if (j < cells.length) {
+                            rowData[headers[j]] = cells[j].textContent.trim();
+                        } else {
+                            rowData[headers[j]] = '';
+                        }
                     }
                     
-                    sheetData.push(rowData);
+                    // เพิ่มข้อมูลเฉพาะถ้ามีค่าในแถว
+                    const hasData = Object.values(rowData).some(value => value !== '');
+                    if (hasData) {
+                        sheetData.push(rowData);
+                    }
                 }
                 
                 // อัปเดต UI
@@ -372,9 +396,10 @@
                 lastUpdatedElement.textContent = lastUpdated;
                 
                 console.log('Data loaded successfully:', sheetData);
+                console.log('Columns found:', headers);
                 
             } catch (error) {
-                console.error('Error parsing CSV:', error);
+                console.error('Error parsing HTML:', error);
                 showError(`ไม่สามารถประมวลผลข้อมูลได้: ${error.message}`);
                 
                 // ใช้ข้อมูลตัวอย่างถ้าไม่สามารถประมวลผลได้
@@ -385,11 +410,13 @@
         // ใช้ข้อมูลตัวอย่าง
         function useSampleData() {
             sheetData = [
-                {'เลขที่แปลง': '12345', 'ชื่อเจ้าของ': 'สมชาย ใจดี', 'พื้นที่': '2 ไร่', 'จังหวัด': 'เชียงใหม่', 'อำเภอ': 'เมือง', 'ตำบล': 'สุเทพ'},
-                {'เลขที่แปลง': '67890', 'ชื่อเจ้าของ': 'สุนิดา รักธรรม', 'พื้นที่': '1 ไร่ 2 งาน', 'จังหวัด': 'ขอนแก่น', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง'},
-                {'เลขที่แปลง': '11223', 'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา', 'พื้นที่': '3 ไร่', 'จังหวัด': 'นครราชสีมา', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง'},
-                {'เลขที่แปลง': '44556', 'ชื่อเจ้าของ': 'อรุณี สุขใจ', 'พื้นที่': '0.5 ไร่', 'จังหวัด': 'เชียงราย', 'อำเภอ': 'เมือง', 'ตำบล': 'รอบเวียง'},
-                {'เลขที่แปลง': '77889', 'ชื่อเจ้าของ': 'วิรัช เมืองดี', 'พื้นที่': '5 ไร่', 'จังหวัด': 'สงขลา', 'อำเภอ': 'หาดใหญ่', 'ตำบล': 'หาดใหญ่'}
+                {'เลขที่แปลง': '12345', 'ชื่อเจ้าของ': 'สมชาย ใจดี', 'พื้นที่': '2 ไร่', 'จังหวัด': 'เชียงใหม่', 'อำเภอ': 'เมือง', 'ตำบล': 'สุเทพ', 'หมายเหตุ': 'แปลงสวนมะม่วง'},
+                {'เลขที่แปลง': '67890', 'ชื่อเจ้าของ': 'สุนิดา รักธรรม', 'พื้นที่': '1 ไร่ 2 งาน', 'จังหวัด': 'ขอนแก่น', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'ที่อยู่อาศัย'},
+                {'เลขที่แปลง': '11223', 'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา', 'พื้นที่': '3 ไร่', 'จังหวัด': 'นครราชสีมา', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'แปลงนา'},
+                {'เลขที่แปลง': '44556', 'ชื่อเจ้าของ': 'อรุณี สุขใจ', 'พื้นที่': '0.5 ไร่', 'จังหวัด': 'เชียงราย', 'อำเภอ': 'เมือง', 'ตำบล': 'รอบเวียง', 'หมายเหตุ': 'ที่ดินว่าง'},
+                {'เลขที่แปลง': '77889', 'ชื่อเจ้าของ': 'วิรัช เมืองดี', 'พื้นที่': '5 ไร่', 'จังหวัด': 'สงขลา', 'อำเภอ': 'หาดใหญ่', 'ตำบล': 'หาดใหญ่', 'หมายเหตุ': 'สวนยางพารา'},
+                {'เลขที่แปลง': '99001', 'ชื่อเจ้าของ': 'พงศกร ทรัพย์สิน', 'พื้นที่': '2.5 ไร่', 'จังหวัด': 'กรุงเทพฯ', 'อำเภอ': 'คลองสาน', 'ตำบล': 'คลองสาน', 'หมายเหตุ': 'ที่ดินริมแม่น้ำ'},
+                {'เลขที่แปลง': '23456', 'ชื่อเจ้าของ': 'รัตนา ศรีสุข', 'พื้นที่': '4 ไร่', 'จังหวัด': 'เพชรบูรณ์', 'อำเภอ': 'เมือง', 'ตำบล': 'ในเมือง', 'หมายเหตุ': 'สวนลำไย'}
             ];
             
             totalRecords.textContent = `${sheetData.length} รายการ (ข้อมูลตัวอย่าง)`;
@@ -432,7 +459,9 @@
                 key.toLowerCase().includes('แปลง') || 
                 key.toLowerCase().includes('lot') || 
                 key.toLowerCase().includes('ที่ดิน') ||
-                key.toLowerCase().includes('เลขที่')
+                key.toLowerCase().includes('เลขที่') ||
+                key.toLowerCase().includes('no') ||
+                key.toLowerCase().includes('number')
             );
             
             // หากไม่มีคอลัมน์ที่เหมาะสม ให้ค้นหาทุกคอลัมน์
@@ -440,7 +469,7 @@
             
             return sheetData.filter(row => {
                 for (const column of searchColumns) {
-                    if (row[column] && row[column].toString().includes(searchTerm)) {
+                    if (row[column] && row[column].toString().toLowerCase().includes(searchTerm.toLowerCase())) {
                         return true;
                     }
                 }
@@ -521,6 +550,11 @@
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
+            
+            // อัตโนมัติซ่อนข้อความผิดพลาดหลังจาก 5 วินาที
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
         }
         
         // อีเวนต์ listeners
@@ -534,7 +568,17 @@
         });
         
         // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
-        document.addEventListener('DOMContentLoaded', loadDataFromSheet);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDataFromSheet();
+            
+            // เพิ่มปุ่มรีเฟรชข้อมูล
+            const refreshBtn = document.createElement('button');
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> รีเฟรชข้อมูล';
+            refreshBtn.style.marginTop = '10px';
+            refreshBtn.addEventListener('click', loadDataFromSheet);
+            
+            document.querySelector('.info-box').appendChild(refreshBtn);
+        });
     </script>
 </body>
 </html>
