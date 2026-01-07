@@ -270,6 +270,8 @@
             padding: 15px;
             border-bottom: 2px solid #c5cae9;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
         }
         
         td {
@@ -346,6 +348,48 @@
             color: #0d47a1;
         }
         
+        .columns-display {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #ffcc80;
+        }
+        
+        .columns-title {
+            color: #e65100;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .columns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .column-item {
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            border-left: 4px solid #ff9800;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .column-index {
+            color: #ff9800;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .column-name {
+            color: #5d4037;
+        }
+        
         footer {
             text-align: center;
             padding: 20px;
@@ -362,6 +406,10 @@
             
             .zone-item {
                 width: 100%;
+            }
+            
+            .columns-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
         }
         
@@ -398,6 +446,10 @@
                 overflow-x: auto;
                 white-space: nowrap;
             }
+            
+            .columns-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -422,22 +474,22 @@
                     <div class="search-row">
                         <label for="searchColumn"><i class="fas fa-columns"></i> ค้นหาในคอลัมน์</label>
                         <select id="searchColumn">
-                            <option value="9" selected>คอลัมน์ที่ 9 (ข้อมูลหลัก)</option>
-                            <option value="all">ทุกคอลัมน์</option>
-                            <option value="1">คอลัมน์ 1</option>
-                            <option value="2">คอลัมน์ 2</option>
-                            <option value="3">คอลัมน์ 3</option>
-                            <option value="4">คอลัมน์ 4</option>
-                            <option value="5">คอลัมน์ 5 (เขต)</option>
-                            <option value="6">คอลัมน์ 6</option>
-                            <option value="7">คอลัมน์ 7</option>
-                            <option value="8">คอลัมน์ 8</option>
-                            <option value="10">คอลัมน์ 10</option>
+                            <!-- ตัวเลือกจะถูกเพิ่มโดย JavaScript หลังจากดึงหัวคอลัมน์ -->
+                            <option value="loading" disabled>กำลังโหลดหัวคอลัมน์...</option>
                         </select>
                     </div>
                     
+                    <div id="columnsDisplay" class="columns-display">
+                        <div class="columns-title">
+                            <i class="fas fa-table"></i> หัวคอลัมน์จาก Google Sheet
+                        </div>
+                        <div id="columnsGrid" class="columns-grid">
+                            <!-- หัวคอลัมน์จะถูกแสดงที่นี่ -->
+                        </div>
+                    </div>
+                    
                     <div class="column-info">
-                        <i class="fas fa-info-circle"></i> <strong>คอลัมน์ที่ 5</strong> คือข้อมูล "เขต" และ <strong>คอลัมน์ที่ 10</strong> คือข้อมูลตัวเลข (ไม่มีตัวคั่นระหว่างตัวเลข)
+                        <i class="fas fa-info-circle"></i> ระบบจะดึงชื่อคอลัมน์จาก Google Sheet อัตโนมัติ
                     </div>
                 </div>
                 
@@ -460,7 +512,7 @@
             
             <div class="loading" id="loadingIndicator">
                 <div class="spinner"></div>
-                กำลังค้นหาข้อมูลจาก Google Sheet...
+                <div id="loadingText">กำลังค้นหาข้อมูลจาก Google Sheet...</div>
             </div>
             
             <section class="results-section" id="resultsSection">
@@ -485,17 +537,98 @@
     </div>
 
     <script>
-        // ข้อมูลตัวอย่างจาก Google Sheet (คอลัมน์ที่ 5 คือเขต, คอลัมน์ที่ 10 คือตัวเลขไม่มีตัวคั่น)
-        const mockData = [
-            ["1000114511", "ข้อมูล A", "ข้อมูล B", "ข้อมูล C", "เขตเหนือ", "ข้อมูล E", "ข้อมูล F", "ข้อมูล G", "ข้อมูล H", "ข้อมูล I (คอลัมน์ 9)", "1234567890"],
-            ["4000153585", "ข้อมูล A2", "ข้อมูล B2", "ข้อมูล C2", "เขตกลาง", "ข้อมูล E2", "ข้อมูล F2", "ข้อมูล G2", "ข้อมูล H2", "ข้อมูล I2 (คอลัมน์ 9)", "9876543210"],
-            ["1002388145", "ข้อมูล A3", "ข้อมูล B3", "ข้อมูล C3", "เขตเหนือ", "ข้อมูล E3", "ข้อมูล F3", "ข้อมูล G3", "ข้อมูล H3", "ข้อมูล I3 (คอลัมน์ 9)", "4561237890"],
-            ["5000123456", "ข้อมูล A4", "ข้อมูล B4", "ข้อมูล C4", "เขตใต้", "ข้อมูล E4", "ข้อมูล F4", "ข้อมูล G4", "ข้อมูล H4", "ข้อมูล I4 (คอลัมน์ 9)", "7890123456"],
-            ["6000789123", "ข้อมูล A5", "ข้อมูล B5", "ข้อมูล C5", "เขตกลาง", "ข้อมูล E5", "ข้อมูล F5", "ข้อมูล G5", "ข้อมูล H5", "ข้อมูล I5 (คอลัมน์ 9)", "3216549870"],
-            ["7000123987", "ข้อมูล A6", "ข้อมูล B6", "ข้อมูล C6", "เขตตะวันออก", "ข้อมูล E6", "ข้อมูล F6", "ข้อมูล G6", "ข้อมูล H6", "ข้อมูล I6 (คอลัมน์ 9)", "6549871230"],
-            ["8000456123", "ข้อมูล A7", "ข้อมูล B7", "ข้อมูล C7", "เขตเหนือ", "ข้อมูล E7", "ข้อมูล F7", "ข้อมูล G7", "ข้อมูล H7", "ข้อมูล I7 (คอลัมน์ 9)", "1472583690"],
-            ["9000789456", "ข้อมูล A8", "ข้อมูล B8", "ข้อมูล C8", "เขตใต้", "ข้อมูล E8", "ข้อมูล F8", "ข้อมูล G8", "ข้อมูล H8", "ข้อมูล I8 (คอลัมน์ 9)", "2583691470"],
+        // ข้อมูลตัวอย่างหัวคอลัมน์จาก Google Sheet
+        const mockColumnHeaders = [
+            "เลขแปลง",
+            "ชื่อโครงการ", 
+            "ประเภท",
+            "ที่อยู่",
+            "เขต",
+            "จังหวัด",
+            "รหัสไปรษณีย์",
+            "สถานะ",
+            "วันที่เริ่ม",
+            "วันที่สิ้นสุด",
+            "หมายเลขติดต่อ",
+            "ผู้รับผิดชอบ",
+            "หมายเหตุ"
         ];
+        
+        // ข้อมูลตัวอย่างจาก Google Sheet
+        const mockData = [
+            ["1000114511", "โครงการ A", "ประเภท 1", "ที่อยู่ A", "เขตเหนือ", "จังหวัด A", "10000", "ดำเนินการ", "2023-01-01", "2023-12-31", "0811111111", "ผู้ดูแล A", "หมายเหตุ A"],
+            ["4000153585", "โครงการ B", "ประเภท 2", "ที่อยู่ B", "เขตกลาง", "จังหวัด B", "20000", "เสร็จสิ้น", "2023-02-01", "2023-11-30", "0822222222", "ผู้ดูแล B", "หมายเหตุ B"],
+            ["1002388145", "โครงการ C", "ประเภท 1", "ที่อยู่ C", "เขตเหนือ", "จังหวัด C", "30000", "รอดำเนินการ", "2023-03-01", "2023-10-31", "0833333333", "ผู้ดูแล C", "หมายเหตุ C"],
+            ["5000123456", "โครงการ D", "ประเภท 3", "ที่อยู่ D", "เขตใต้", "จังหวัด D", "40000", "ดำเนินการ", "2023-04-01", "2023-09-30", "0844444444", "ผู้ดูแล D", "หมายเหตุ D"],
+            ["6000789123", "โครงการ E", "ประเภท 2", "ที่อยู่ E", "เขตกลาง", "จังหวัด E", "50000", "ยกเลิก", "2023-05-01", "2023-08-31", "0855555555", "ผู้ดูแล E", "หมายเหตุ E"],
+        ];
+        
+        // ตัวแปรเก็บหัวคอลัมน์ที่ดึงมา
+        let columnHeaders = [];
+        
+        // ฟังก์ชันดึงหัวคอลัมน์จาก Google Sheet (จำลอง)
+        async function fetchColumnHeaders() {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // ในระบบจริงจะเรียก Google Sheets API เพื่อดึงแถวแรก
+                    resolve(mockColumnHeaders);
+                }, 1000);
+            });
+        }
+        
+        // ฟังก์ชันแสดงหัวคอลัมน์ใน dropdown และ grid
+        function displayColumnHeaders(headers) {
+            const searchColumnSelect = document.getElementById('searchColumn');
+            const columnsGrid = document.getElementById('columnsGrid');
+            
+            // ล้างตัวเลือกเดิม
+            searchColumnSelect.innerHTML = '';
+            
+            // เพิ่มตัวเลือก "ทุกคอลัมน์"
+            const allOption = document.createElement('option');
+            allOption.value = 'all';
+            allOption.textContent = 'ทุกคอลัมน์';
+            searchColumnSelect.appendChild(allOption);
+            
+            // เพิ่มตัวเลือกสำหรับแต่ละคอลัมน์
+            headers.forEach((header, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1; // คอลัมน์ที่ 1, 2, 3, ...
+                option.textContent = `คอลัมน์ ${index + 1}: ${header}`;
+                
+                // ตั้งค่าให้คอลัมน์ 9 เป็นค่าเริ่มต้น
+                if (index === 8) {
+                    option.selected = true;
+                }
+                
+                searchColumnSelect.appendChild(option);
+            });
+            
+            // แสดงหัวคอลัมน์ใน grid
+            columnsGrid.innerHTML = '';
+            headers.forEach((header, index) => {
+                const columnItem = document.createElement('div');
+                columnItem.className = 'column-item';
+                columnItem.innerHTML = `
+                    <span class="column-index">${index + 1}</span>
+                    <span class="column-name">${header}</span>
+                `;
+                columnsGrid.appendChild(columnItem);
+            });
+            
+            // บันทึกหัวคอลัมน์ไว้ใช้งาน
+            columnHeaders = headers;
+        }
+        
+        // ฟังก์ชันดึงข้อมูลจาก Google Sheet (จำลอง)
+        async function fetchSheetData() {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // ในระบบจริงจะเรียก Google Sheets API
+                    resolve(mockData);
+                }, 1500);
+            });
+        }
         
         // ฟังก์ชันล้างตัวคั่นในคอลัมน์ที่ 10 (สำหรับข้อมูลจริง)
         function cleanColumn10Data(data) {
@@ -513,6 +646,7 @@
             const zoneCounts = {};
             
             data.forEach(row => {
+                // คอลัมน์ที่ 5 คือเขต (index 4)
                 const zone = row[4] || 'ไม่ระบุเขต';
                 zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
             });
@@ -533,7 +667,7 @@
             let summaryHTML = `
                 <div class="summary-section">
                     <div class="summary-title">
-                        <i class="fas fa-map-marked-alt"></i> สรุปข้อมูลเขต (จากคอลัมน์ที่ 5)
+                        <i class="fas fa-map-marked-alt"></i> สรุปข้อมูลเขต (${columnHeaders[4] || 'เขต'})
                     </div>
                     <div class="zone-summary">
             `;
@@ -556,7 +690,7 @@
         }
         
         // ฟังก์ชันค้นหาข้อมูลจากคอลัมน์ที่กำหนด
-        function searchData(searchTerm, column) {
+        function searchData(searchTerm, column, data) {
             if (!searchTerm.trim()) {
                 return [];
             }
@@ -564,7 +698,7 @@
             const searchTerms = searchTerm.split(',').map(term => term.trim()).filter(term => term);
             const results = [];
             
-            mockData.forEach(row => {
+            data.forEach(row => {
                 let matchFound = false;
                 
                 searchTerms.forEach(term => {
@@ -594,7 +728,7 @@
         }
         
         // ฟังก์ชันแสดงผลลัพธ์
-        function displayResults(results, searchTerm) {
+        function displayResults(results, searchTerm, headers) {
             const resultsSection = document.getElementById('resultsSection');
             const resultsCount = document.getElementById('resultsCount');
             const tableContainer = document.getElementById('resultsTableContainer');
@@ -615,19 +749,26 @@
                 
                 // สร้างตารางผลลัพธ์
                 let tableHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ลำดับ</th>
-                                <th>เลขแปลง</th>
-                                <th>เขต (คอลัมน์ 5)</th>
-                                <th>ข้อมูลคอลัมน์ 1</th>
-                                <th>ข้อมูลคอลัมน์ 2</th>
-                                <th>ข้อมูลคอลัมน์ 9</th>
-                                <th>คอลัมน์ 10 (ตัวเลข)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ลำดับ</th>
+                `;
+                
+                // เพิ่มหัวคอลัมน์สำหรับคอลัมน์ที่สำคัญ
+                const importantColumns = [0, 1, 4, 8, 10]; // เลขแปลง, ชื่อโครงการ, เขต, วันที่เริ่ม, หมายเลขติดต่อ
+                
+                importantColumns.forEach(colIndex => {
+                    if (headers[colIndex]) {
+                        tableHTML += `<th>${headers[colIndex]}</th>`;
+                    }
+                });
+                
+                tableHTML += `
+                                </tr>
+                            </thead>
+                            <tbody>
                 `;
                 
                 results.forEach((row, index) => {
@@ -650,25 +791,30 @@
                         return cell;
                     });
                     
-                    // คอลัมน์ที่ 10 - ไม่มีตัวคั่นระหว่างตัวเลข
-                    const col10Value = row[10] || '';
-                    
                     tableHTML += `
                         <tr>
                             <td>${index + 1}</td>
-                            <td class="col-number">${highlightedRow[0] || ''}</td>
-                            <td><span class="col-zone">${row[4] || 'ไม่ระบุเขต'}</span></td>
-                            <td>${highlightedRow[1] || ''}</td>
-                            <td>${highlightedRow[2] || ''}</td>
-                            <td>${highlightedRow[8] || ''}</td>
-                            <td class="col-number">${col10Value}</td>
-                        </tr>
                     `;
+                    
+                    // เพิ่มข้อมูลสำหรับคอลัมน์ที่สำคัญ
+                    importantColumns.forEach(colIndex => {
+                        const cellValue = highlightedRow[colIndex] || '';
+                        if (colIndex === 4) { // คอลัมน์เขต
+                            tableHTML += `<td><span class="col-zone">${cellValue}</span></td>`;
+                        } else if (colIndex === 0 || colIndex === 10) { // คอลัมน์ตัวเลข
+                            tableHTML += `<td class="col-number">${cellValue}</td>`;
+                        } else {
+                            tableHTML += `<td>${cellValue}</td>`;
+                        }
+                    });
+                    
+                    tableHTML += `</tr>`;
                 });
                 
                 tableHTML += `
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 `;
                 
                 tableContainer.innerHTML = tableHTML;
@@ -678,16 +824,33 @@
             resultsSection.style.display = 'block';
         }
         
-        // ฟังก์ชันจำลองการโหลดข้อมูลจาก Google Sheet
-        function simulateAPICall(searchTerm, column) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    // ทำความสะอาดข้อมูลคอลัมน์ที่ 10 ก่อนค้นหา
-                    const cleanedData = cleanColumn10Data(mockData);
-                    const results = searchData(searchTerm, column);
-                    resolve(results);
-                }, 1500);
-            });
+        // ฟังก์ชันโหลดข้อมูลทั้งหมด
+        async function loadAllData() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const loadingText = document.getElementById('loadingText');
+            
+            // แสดงการโหลด
+            loadingIndicator.style.display = 'block';
+            loadingText.textContent = 'กำลังโหลดหัวคอลัมน์จาก Google Sheet...';
+            
+            try {
+                // ดึงหัวคอลัมน์
+                const headers = await fetchColumnHeaders();
+                displayColumnHeaders(headers);
+                
+                // ดึงข้อมูล
+                loadingText.textContent = 'กำลังโหลดข้อมูลจาก Google Sheet...';
+                const data = await fetchSheetData();
+                
+                // ซ่อนการโหลด
+                loadingIndicator.style.display = 'none';
+                
+                return { headers, data };
+            } catch (error) {
+                loadingIndicator.style.display = 'none';
+                alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
+                return { headers: mockColumnHeaders, data: mockData };
+            }
         }
         
         // อ้างอิงถึงองค์ประกอบ DOM
@@ -698,6 +861,9 @@
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const reloadDataBtn = document.getElementById('reloadDataBtn');
         const otherSearchBtn = document.getElementById('otherSearchBtn');
+        
+        // ตัวแปรเก็บข้อมูล
+        let currentData = { headers: [], data: [] };
         
         // การจัดการเหตุการณ์การคลิกที่ปุ่มค้นหา
         searchButton.addEventListener('click', async () => {
@@ -712,17 +878,20 @@
             
             // แสดงตัวบ่งชี้การโหลด
             loadingIndicator.style.display = 'block';
+            document.getElementById('loadingText').textContent = 'กำลังค้นหาข้อมูล...';
             document.getElementById('resultsSection').style.display = 'none';
             
-            // จำลองการเรียก API
-            const results = await simulateAPICall(searchTerm, column);
+            // ค้นหาข้อมูล
+            const results = searchData(searchTerm, column, currentData.data);
             
             // ซ่อนตัวบ่งชี้การโหลดและแสดงผลลัพธ์
-            loadingIndicator.style.display = 'none';
-            displayResults(results, searchTerm);
-            
-            // เลื่อนไปที่ส่วนผลลัพธ์
-            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => {
+                loadingIndicator.style.display = 'none';
+                displayResults(results, searchTerm, currentData.headers);
+                
+                // เลื่อนไปที่ส่วนผลลัพธ์
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            }, 500);
         });
         
         // อนุญาตให้ค้นหาโดยกด Enter
@@ -740,33 +909,19 @@
         });
         
         // การจัดการเหตุการณ์การโหลดข้อมูลใหม่
-        reloadDataBtn.addEventListener('click', () => {
-            // ในระบบจริงจะดึงข้อมูลจาก Google Sheets API
-            const sheetId = 'BecKphnIZCWJUIfgappe30s-bKxAb4aWC33mAEgGrw';
+        reloadDataBtn.addEventListener('click', async () => {
+            currentData = await loadAllData();
             
-            // แสดงการโหลด
-            loadingIndicator.style.display = 'block';
-            document.getElementById('resultsSection').style.display = 'none';
+            // แสดงข้อความแจ้งเตือน
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div style="background-color: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #c8e6c9;">
+                    <i class="fas fa-check-circle"></i> โหลดข้อมูลใหม่สำเร็จ! (${currentData.data.length} รายการ, ${currentData.headers.length} คอลัมน์)
+                </div>
+            `;
+            document.querySelector('.input-group').appendChild(notification);
             
-            setTimeout(() => {
-                loadingIndicator.style.display = 'none';
-                alert('โหลดข้อมูลใหม่สำเร็จจาก Google Sheet!');
-                
-                // ข้อมูลตัวอย่างหลังโหลดใหม่
-                convertedNumberInput.value = "1000114511, 4000153585";
-                searchColumnSelect.value = "9";
-                
-                // แสดงข้อความแจ้งเตือน
-                const notification = document.createElement('div');
-                notification.innerHTML = `
-                    <div style="background-color: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 5px; margin-top: 10px; border: 1px solid #c8e6c9;">
-                        <i class="fas fa-check-circle"></i> โหลดข้อมูลใหม่จาก Google Sheet สำเร็จ (${mockData.length} รายการ)
-                    </div>
-                `;
-                document.querySelector('.input-group').appendChild(notification);
-                
-                setTimeout(() => notification.remove(), 3000);
-            }, 1500);
+            setTimeout(() => notification.remove(), 3000);
         });
         
         // การจัดการเหตุการณ์การค้นหาข้อมูลอื่นๆ
@@ -789,15 +944,18 @@
             convertedNumberInput.focus();
         });
         
-        // ข้อมูลตัวอย่างอัตโนมัติสำหรับการสาธิต
-        window.addEventListener('DOMContentLoaded', () => {
+        // โหลดข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
+        window.addEventListener('DOMContentLoaded', async () => {
+            // โหลดข้อมูลทั้งหมด
+            currentData = await loadAllData();
+            
             // เตรียมข้อมูลตัวอย่างในช่องค้นหา
             convertedNumberInput.value = "1000114511, 4000153585";
             
             // แสดงข้อความแนะนำ
             console.log("ระบบค้นหาเลขแปลง IN-TECH พร้อมใช้งาน");
-            console.log("• คอลัมน์ที่ 5: ข้อมูลเขต (แสดงในสรุปและในตาราง)");
-            console.log("• คอลัมน์ที่ 10: ข้อมูลตัวเลข (ไม่มีตัวคั่น)");
+            console.log("• ดึงหัวคอลัมน์จาก Google Sheet: " + currentData.headers.length + " คอลัมน์");
+            console.log("• โหลดข้อมูล: " + currentData.data.length + " รายการ");
             console.log("ลองคลิกปุ่ม 'ค้นหาเลขแปลง' เพื่อทดสอบระบบ");
         });
     </script>
