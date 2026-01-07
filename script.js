@@ -1,11 +1,15 @@
-// Configuration
+// Configuration - ใช้วิธีดึงข้อมูลจาก CSV โดยตรง
 const CONFIG = {
-    GOOGLE_APPS_SCRIPT_URL: 'https://docs.google.com/spreadsheets/d/15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw/edit',
+    // วิธีที่ 1: ใช้ CSV Export URL
+    CSV_URL: 'https://docs.google.com/spreadsheets/d/15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw/gviz/tq?tqx=out:csv',
+    
+    // วิธีที่ 2: ใช้ Published Sheet (HTML) แล้ว parse
+    PUBLISHED_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml',
+    
     SHEET_ID: '15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw',
     SHEET_NAME: 'สถานะ',
     ITEMS_PER_PAGE: 50,
-    AUTO_REFRESH_INTERVAL: 300000, // 5 minutes
-    CACHE_DURATION: 60000 // 1 minute
+    CACHE_DURATION: 60000
 };
 
 // Global variables
