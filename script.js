@@ -1,3 +1,132 @@
+function getGoogleDriveImageUrl(fileId) {
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
+function getImageFromGoogleDrive(fieldValue) {
+    if (!fieldValue || fieldValue === '') return null;
+    
+    // ถ้าเป็น Google Drive file ID
+    if (fieldValue.match(/^[a-zA-Z0-9_-]{33}$/)) {
+        return getGoogleDriveImageUrl(fieldValue);
+    }
+    
+    // ถ้าเป็น Google Drive URL
+    const driveUrlMatch = fieldValue.match(/\/d\/([^\/]+)/);
+    if (driveUrlMatch) {
+        return getGoogleDriveImageUrl(driveUrlMatch[1]);
+    }
+    
+    // ถ้าเป็นชื่อไฟล์รูปภาพ
+    if (isImageFile(fieldValue)) {
+        return fieldValue;
+    }
+    
+    return null;
+}
+
+// ตรวจสอบว่าเป็นไฟล์รูปภาพหรือไม่
+function isImageFile(filename) {
+    if (!filename) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.JPG', '.JPEG', '.PNG'];
+    const lowerFilename = filename.toLowerCase();
+    return imageExtensions.some(ext => lowerFilename.endsWith(ext));
+}
+
+// สร้าง HTML สำหรับแสดงรูปภาพ
+function createImagePreview(imageValue, columnName = '') {
+    if (!imageValue || imageValue === '') {
+        return '<span class="text-muted">-</span>';
+    }
+    
+    // แปลง URL Google Drive ถ้าจำเป็น
+    let imageUrl = getImageFromGoogleDrive(imageValue);
+    
+    // ถ้า getImageFromGoogleDrive คืนค่า null ให้ใช้ค่าเดิม
+    if (!imageUrl) {
+        imageUrl = imageValue;
+    }
+    
+    // ถ้ายังเป็นชื่อไฟล์อย่างเดียว (ไม่ใช่ URL) และเป็นไฟล์รูปภาพ
+    if (!imageUrl.includes('://') && isImageFile(imageUrl)) {
+        imageUrl = 'สถานะ_Images/' + imageUrl;
+    }
+    
+    const filename = imageUrl.split('/').pop().split('\\').pop();
+    const isImageColumn = CONFIG.IMAGE_COLUMNS && CONFIG.IMAGE_COLUMNS.some(col => columnName.includes(col));
+    
+    return `
+        <div class="image-preview" style="text-align: center;">
+            <img src="${imageUrl}" 
+                 alt="${filename}" 
+                 class="img-thumbnail preview-image" 
+                 style="max-width: 80px; max-height: 80px; cursor: pointer; object-fit: cover;"
+                 onclick="showFullImage('${imageUrl}', '${filename}')"
+                 onerror="this.onerror=null; this.src='https://via.placeholder.com/80x80/cccccc/666666?text=No+Image'">
+            <div class="image-filename small text-muted mt-1" style="word-break: break-all; font-size: 0.7rem;">${isImageColumn ? filename.substring(0, 20) + (filename.length > 20 ? '...' : '') : ''}</div>
+        </div>
+    `;
+}
+
+// แสดงรูปภาพเต็มขนาด
+function showFullImage(imageUrl, filename) {
+    // สำหรับ Google Drive URL ให้แปลงเป็นรูปแบบ preview
+    let displayUrl = imageUrl;
+    if (imageUrl.includes('drive.google.com/uc?')) {
+        displayUrl = imageUrl;
+    } else if (imageUrl.includes('drive.google.com/file/d/')) {
+        const fileId = imageUrl.match(/\/d\/([^\/]+)/)[1];
+        displayUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    
+    const fullImageUrl = imageUrl.includes('drive.google.com') ? 
+        imageUrl.replace('uc?export=view&id=', 'file/d/').replace('?export=view', '') + '/view' : 
+        imageUrl;
+    
+    const modalHtml = `
+        <div class="modal fade" id="imageModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-image me-2"></i>รูปภาพผ่ากอ
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="mb-3">
+                            <img src="${displayUrl}" 
+                                 alt="${filename}" 
+                                 class="img-fluid rounded"
+                                 style="max-height: 70vh; max-width: 100%;"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/800x600/cccccc/666666?text=ไม่พบรูปภาพ'">
+                        </div>
+                        <p class="text-muted mb-0"><small>${filename}</small></p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="${fullImageUrl}" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-external-link-alt me-1"></i> เปิดในแท็บใหม่
+                        </a>
+                        <a href="${displayUrl}" class="btn btn-success" target="_blank" download="${filename}">
+                            <i class="fas fa-download me-1"></i> ดาวน์โหลด
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('body').append(modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+    
+    $('#imageModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
 // ============================================
 // ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากอ
 // ============================================
@@ -28,6 +157,9 @@ const CONFIG = {
     
     // Columns for IN-TECH number search
     INTECH_SEARCH_COLUMNS: ['เลขแปลงและยกั', 'เลขโครงขา้', 'ชื่อราคาไฟ'],
+    
+    // Columns for image display - เพิ่มคอลัมน์รูปภาพที่นี่
+    IMAGE_COLUMNS: ['รูปถ่ายตอนผ่ากอ', 'รูปภาพผ่ากอ', 'ภาพผ่ากอ', 'รูปภาพ', 'ภาพถ่าย'],
     
     // Pagination
     ITEMS_PER_PAGE: 15,
@@ -86,6 +218,17 @@ function initializeEventListeners() {
     
     // ปุ่มดาวน์โหลด CSV
     $('#exportDataBtn').click(exportData);
+    
+    // ค้นหาเมื่อกด Enter ในช่องค้นหา
+    $('#searchIntechInput, #searchGeneralInput').keypress(function(e) {
+        if (e.which === 13) {
+            if ($(this).attr('id') === 'searchIntechInput') {
+                searchIntech();
+            } else {
+                searchGeneral();
+            }
+        }
+    });
 }
 
 // โหลดข้อมูลเริ่มต้น
@@ -506,10 +649,11 @@ function displayData(dataToShow = allData) {
         
         headers.forEach(header => {
             let value = row[header] || '';
-            let displayValue = formatValue(value);
+            let displayValue = formatValue(value, header); // เปลี่ยนเป็นส่งชื่อคอลัมน์ไปด้วย
             
-            // ไฮไลต์ถ้าเป็นผลการค้นหา
+            // ไฮไลต์ถ้าเป็นผลการค้นหา (เฉพาะข้อความ ไม่ใช่รูปภาพ)
             if (currentSearchTerm && currentSearchResults && 
+                !isImageFile(String(value)) && 
                 String(value).toLowerCase().includes(currentSearchTerm.toLowerCase())) {
                 displayValue = displayValue.replace(
                     new RegExp(`(${currentSearchTerm})`, 'gi'),
@@ -661,6 +805,7 @@ function checkAvailableColumns() {
     
     const headers = Object.keys(allData[0]);
     const intechColumns = CONFIG.INTECH_SEARCH_COLUMNS.filter(col => headers.includes(col));
+    const imageColumns = CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.filter(col => headers.includes(col)) : [];
     
     let html = `
         <div class="card">
@@ -674,6 +819,14 @@ function checkAvailableColumns() {
                         `<span class="badge bg-primary me-1 mb-1">${col}</span>`
                     ).join('')}
                 </div>
+                ${imageColumns.length > 0 ? `
+                <p class="mb-2"><strong>คอลัมน์รูปภาพ:</strong></p>
+                <div class="mb-3">
+                    ${imageColumns.map(col => 
+                        `<span class="badge bg-success me-1 mb-1"><i class="fas fa-image me-1"></i>${col}</span>`
+                    ).join('')}
+                </div>
+                ` : ''}
                 <p class="mb-2"><strong>คอลัมน์ทั้งหมด (${headers.length} คอลัมน์):</strong></p>
                 <div>
                     ${headers.map(col => 
@@ -691,9 +844,27 @@ function showRowDetail(rowIndex) {
     const row = allData[rowIndex];
     const headers = Object.keys(row).filter(h => !h.startsWith('_'));
     
+    // หารูปภาพหลัก (ถ้ามี)
+    let mainImage = null;
+    let mainImageColumn = '';
+    let mainImageFilename = '';
+    
+    if (CONFIG.IMAGE_COLUMNS) {
+        CONFIG.IMAGE_COLUMNS.forEach(col => {
+            if (row[col] && row[col].trim() !== '' && !mainImage) {
+                const imageUrl = getImageFromGoogleDrive(row[col]) || row[col];
+                if (imageUrl) {
+                    mainImage = imageUrl;
+                    mainImageColumn = col;
+                    mainImageFilename = mainImage.split('/').pop().split('\\').pop();
+                }
+            }
+        });
+    }
+    
     let detailHtml = `
         <div class="modal fade" id="detailModal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title">
@@ -703,21 +874,53 @@ function showRowDetail(rowIndex) {
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
     `;
+    
+    // แสดงรูปภาพหลักใหญ่ (ถ้ามี)
+    if (mainImage) {
+        detailHtml += `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-image me-2"></i>รูปภาพผ่ากอ
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="${mainImage}" 
+                                 alt="${mainImageFilename}" 
+                                 class="img-fluid rounded" 
+                                 style="max-height: 300px; cursor: pointer; object-fit: contain;"
+                                 onclick="showFullImage('${mainImage}', '${mainImageFilename}')"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/800x400/cccccc/666666?text=ไม่พบรูปภาพ'">
+                            <p class="mt-2 text-muted"><small>${mainImageFilename}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    detailHtml += `<div class="row">`;
     
     headers.forEach((key, index) => {
         const value = row[key] || '-';
         const isIntechColumn = CONFIG.INTECH_SEARCH_COLUMNS.includes(key);
+        const isImageColumn = CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.includes(key) : false;
+        
+        // ข้ามคอลัมน์รูปภาพหลักถ้าได้แสดงแล้ว
+        if (isImageColumn && key === mainImageColumn) {
+            return;
+        }
         
         detailHtml += `
-            <div class="col-md-6 mb-3">
-                <label class="form-label ${isIntechColumn ? 'fw-bold text-primary' : 'text-muted'} small">
+            <div class="col-md-${isImageColumn ? '12' : '6'} mb-3">
+                <label class="form-label ${isIntechColumn ? 'fw-bold text-primary' : isImageColumn ? 'fw-bold text-success' : 'text-muted'} small">
                     ${formatHeader(key)}
                     ${isIntechColumn ? '<i class="fas fa-search ms-1 small"></i>' : ''}
+                    ${isImageColumn ? '<i class="fas fa-image ms-1 small"></i>' : ''}
                 </label>
-                <div class="form-control bg-light" style="min-height: 38px;">
-                    ${formatValue(value)}
+                <div class="${isImageColumn ? 'image-container p-3 text-center' : 'form-control bg-light'}" style="${isImageColumn ? '' : 'min-height: 38px;'}">
+                    ${formatValue(value, key)}
                 </div>
             </div>
         `;
@@ -733,6 +936,11 @@ function showRowDetail(rowIndex) {
                         <button type="button" class="btn btn-primary" onclick="copyRowData(${rowIndex})">
                             <i class="fas fa-copy me-1"></i> คัดลอกข้อมูล
                         </button>
+                        ${mainImage ? `
+                        <a href="${mainImage}" class="btn btn-success" target="_blank" download="${mainImageFilename}">
+                            <i class="fas fa-download me-1"></i> ดาวน์โหลดรูปภาพ
+                        </a>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -827,6 +1035,7 @@ function viewRawData() {
                                 <li>จำนวนแถวทั้งหมด: ${allData.length}</li>
                                 <li>จำนวนคอลัมน์: ${headers.length}</li>
                                 <li>คอลัมน์แรก: ${headers[0] || 'ไม่มี'}</li>
+                                ${CONFIG.IMAGE_COLUMNS ? `<li>คอลัมน์รูปภาพ: ${CONFIG.IMAGE_COLUMNS.filter(col => headers.includes(col)).join(', ')}</li>` : ''}
                             </ul>
                         </div>
                     </div>
@@ -988,7 +1197,7 @@ function showSearchHistory() {
             <div class="list-group-item">
                 <div class="d-flex w-100 justify-content-between">
                     <h6 class="mb-1">
-                        <span class="badge ${item.type.includes('IN-TECH') ? 'bg-primary' : 'bg-secondary'} me-2">
+                        <span class="badge ${item.type.includes('IN-TECH') ? 'bg-primary' : item.type.includes('รูปภาพ') ? 'bg-success' : 'bg-secondary'} me-2">
                             ${item.type}
                         </span>
                         "${item.keyword}"
@@ -1093,15 +1302,21 @@ function formatHeader(header) {
     return header;
 }
 
-function formatValue(value) {
+function formatValue(value, columnName = '') {
     if (value === null || value === undefined || value === '') {
         return '<span class="text-muted">-</span>';
     }
     
     const str = String(value).trim();
     
+    // ตรวจสอบว่าเป็นคอลัมน์รูปภาพหรือมีชื่อไฟล์รูปภาพ
+    const isImageColumn = CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.some(col => columnName.includes(col)) : false;
+    if (isImageColumn || isImageFile(str)) {
+        return createImagePreview(str, columnName);
+    }
+    
     // ถ้าเป็นตัวเลข
-    if (!isNaN(str) && str !== '') {
+    if (!isNaN(str) && str !== '' && !str.includes('/')) {
         const num = Number(str);
         return num.toLocaleString('th-TH');
     }
@@ -1112,6 +1327,14 @@ function formatValue(value) {
         return str;
     }
     
+    // ตรวจสอบว่าเป็น Google Drive URL
+    if (str.includes('drive.google.com')) {
+        const imageUrl = getImageFromGoogleDrive(str);
+        if (imageUrl) {
+            return createImagePreview(str, columnName);
+        }
+    }
+    
     // ข้อความธรรมดา
     return str.replace(/\n/g, '<br>');
 }
@@ -1120,3 +1343,4 @@ function formatValue(value) {
 console.log('✅ ระบบค้นหาเลขแปลง IN-TECH พร้อมใช้งาน');
 console.log('📊 โครงการ:', CONFIG.PROJECT_NAME);
 console.log('🔗 Sheet ID:', CONFIG.SHEET_ID);
+console.log('🖼️ คอลัมน์รูปภาพ:', CONFIG.IMAGE_COLUMNS ? CONFIG.IMAGE_COLUMNS.join(', ') : 'ไม่มี');
