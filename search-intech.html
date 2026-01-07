@@ -26,7 +26,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             overflow: hidden;
             margin-top: 20px;
         }
@@ -58,6 +58,56 @@
         
         .content {
             padding: 30px;
+        }
+        
+        .config-section {
+            background: #f0f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #bae6fd;
+        }
+        
+        .config-title {
+            font-weight: bold;
+            color: #1a73e8;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .config-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .config-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+        
+        .config-input {
+            padding: 12px 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .config-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
         }
         
         .search-section {
@@ -94,10 +144,10 @@
         .btn {
             flex: 1;
             min-width: 140px;
-            padding: 18px;
+            padding: 15px;
             border: none;
             border-radius: 12px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
@@ -123,9 +173,21 @@
             color: white;
         }
         
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+        }
+        
         .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .result-section {
@@ -301,6 +363,10 @@
                 padding: 20px;
             }
             
+            .config-inputs {
+                grid-template-columns: 1fr;
+            }
+            
             .buttons {
                 flex-direction: column;
             }
@@ -361,13 +427,23 @@
             background: #1a73e8;
             color: white;
         }
+        
+        .sheet-info {
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #854d0e;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-search"></i> ค้นหาเลขแปลงintech</h1>
+            <h1><i class="fas fa-search"></i> ค้นหาเลขแปลง IN-TECH</h1>
             <p>ระบบค้นหาเลขแปลงจาก Google Sheet โครงการผ่ากอ</p>
         </div>
         
@@ -377,10 +453,43 @@
             <div class="message error-message" id="errorMessage"></div>
             <div class="message info-message" id="infoMessage"></div>
             
+            <!-- ส่วนตั้งค่า Google Sheets -->
+            <div class="config-section">
+                <div class="config-title">
+                    <i class="fas fa-cog"></i> ตั้งค่า Google Sheets
+                </div>
+                <div class="config-inputs">
+                    <div class="config-group">
+                        <label class="config-label">Google Sheet ID</label>
+                        <input type="text" 
+                               id="sheetId" 
+                               class="config-input"
+                               placeholder="เช่น: 1XqYtG5jKpLmNoPqRsTuVwXyZ"
+                               value="">
+                    </div>
+                    <div class="config-group">
+                        <label class="config-label">ชื่อชีต (Sheet Name)</label>
+                        <input type="text" 
+                               id="sheetName" 
+                               class="config-input"
+                               placeholder="เช่น: Sheet1 หรือ ชื่อชีต"
+                               value="Sheet1">
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-success" id="saveConfigBtn">
+                        <i class="fas fa-save"></i> บันทึกการตั้งค่า
+                    </button>
+                    <button class="btn btn-secondary" id="loadDataBtn">
+                        <i class="fas fa-cloud-download-alt"></i> โหลดข้อมูลจาก Google Sheets
+                    </button>
+                </div>
+            </div>
+            
             <!-- เมนูตัวอย่างข้อมูล -->
             <div class="sample-menu">
                 <div class="sample-title">
-                    <i class="fas fa-lightbulb"></i> ตัวอย่างเลขแปลงที่สามารถค้นหาได้:
+                    <i class="fas fa-lightbulb"></i> ค้นหาด้วยตัวอย่าง:
                 </div>
                 <div class="sample-buttons" id="sampleButtons">
                     <!-- ตัวอย่างข้อมูลจะถูกเพิ่มด้วย JavaScript -->
@@ -405,11 +514,8 @@
                     <button class="btn btn-secondary" id="clearBtn" aria-label="ล้างข้อมูล">
                         <i class="fas fa-eraser"></i> ล้าง
                     </button>
-                    <button class="btn btn-success" id="loadDataBtn" aria-label="โหลดข้อมูลจาก Google Sheet">
-                        <i class="fas fa-cloud-download-alt"></i> โหลดข้อมูล
-                    </button>
-                    <button class="btn btn-secondary" id="testBtn" aria-label="ทดสอบระบบ">
-                        <i class="fas fa-vial"></i> ทดสอบ
+                    <button class="btn btn-warning" id="testBtn" aria-label="ทดสอบระบบ">
+                        <i class="fas fa-vial"></i> ทดสอบระบบ
                     </button>
                 </div>
             </div>
@@ -418,7 +524,7 @@
             <div class="result-section" id="resultSection">
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>กำลังค้นหาข้อมูล...</p>
+                    <p id="loadingText">กำลังค้นหาข้อมูล...</p>
                 </div>
                 
                 <div class="no-data" id="noData">
@@ -448,33 +554,43 @@
                 <p><strong>สถานะระบบ:</strong> <span id="systemStatus">กำลังเตรียมระบบ...</span></p>
                 <p><strong>ข้อมูลในระบบ:</strong> <span id="dataCount">0 รายการ</span></p>
                 <p><strong>ประวัติการค้นหา:</strong> <span id="historyCount">0 รายการ</span></p>
-                <p><small>กดปุ่ม "ทดสอบ" เพื่อตรวจสอบระบบ หรือ F12 เพื่อเปิด Developer Console</small></p>
+                <p><strong>Google Sheet:</strong> <span id="sheetStatus">ยังไม่ได้ตั้งค่า</span></p>
+                <p><small>กดปุ่ม "ทดสอบระบบ" เพื่อตรวจสอบ หรือ F12 เพื่อเปิด Developer Console</small></p>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================
-        // 1. ข้อมูลตัวอย่างเริ่มต้น
+        // 1. ตัวแปรระบบ
         // ============================================
         let sheetData = [];
         let systemReady = false;
         const SEARCH_HISTORY_KEY = 'in-tech-search-history';
+        const CONFIG_KEY = 'in-tech-sheet-config';
         const MAX_HISTORY = 10;
+
+        // ค่าตั้งต้นสำหรับ Google Sheets
+        let sheetConfig = {
+            sheetId: '',
+            sheetName: 'Sheet1'
+        };
 
         // ============================================
         // 2. อ้างอิง DOM Elements
         // ============================================
         const elements = {
-            // Inputs
-            searchInput: document.getElementById('searchInput'),
+            // Config
+            sheetId: document.getElementById('sheetId'),
+            sheetName: document.getElementById('sheetName'),
+            saveConfigBtn: document.getElementById('saveConfigBtn'),
+            loadDataBtn: document.getElementById('loadDataBtn'),
             
-            // Buttons
+            // Search
+            searchInput: document.getElementById('searchInput'),
             searchBtn: document.getElementById('searchBtn'),
             clearBtn: document.getElementById('clearBtn'),
-            loadDataBtn: document.getElementById('loadDataBtn'),
             testBtn: document.getElementById('testBtn'),
-            clearHistoryBtn: document.getElementById('clearHistoryBtn'),
             
             // Messages
             successMessage: document.getElementById('successMessage'),
@@ -484,24 +600,27 @@
             // Results
             resultSection: document.getElementById('resultSection'),
             loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loadingText'),
             noData: document.getElementById('noData'),
             resultsContainer: document.getElementById('resultsContainer'),
             
             // History
             historySection: document.getElementById('historySection'),
             historyItems: document.getElementById('historyItems'),
+            clearHistoryBtn: document.getElementById('clearHistoryBtn'),
             
             // Status
             systemStatus: document.getElementById('systemStatus'),
             dataCount: document.getElementById('dataCount'),
             historyCount: document.getElementById('historyCount'),
+            sheetStatus: document.getElementById('sheetStatus'),
             
             // Sample buttons
             sampleButtons: document.getElementById('sampleButtons')
         };
 
         // ============================================
-        // 3. ฟังก์ชันแสดงข้อความ
+        // 3. ฟังก์ชันจัดการข้อความและสถานะ
         // ============================================
         function showMessage(type, text, duration = 5000) {
             const element = elements[`${type}Message`];
@@ -521,8 +640,9 @@
             }
         }
 
-        function showLoading(show) {
+        function showLoading(show, text = 'กำลังค้นหาข้อมูล...') {
             elements.loading.style.display = show ? 'block' : 'none';
+            elements.loadingText.textContent = text;
             if (show) {
                 elements.noData.style.display = 'none';
             }
@@ -532,26 +652,220 @@
             elements.systemStatus.textContent = systemReady ? 'พร้อมใช้งาน' : 'กำลังเตรียมระบบ';
             elements.systemStatus.style.color = systemReady ? '#28a745' : '#e74c3c';
             elements.dataCount.textContent = `${sheetData.length} รายการ`;
+            
+            // อัปเดตสถานะ Google Sheet
+            if (sheetConfig.sheetId) {
+                elements.sheetStatus.textContent = `ตั้งค่าแล้ว (${sheetConfig.sheetName})`;
+                elements.sheetStatus.style.color = '#28a745';
+            } else {
+                elements.sheetStatus.textContent = 'ยังไม่ได้ตั้งค่า';
+                elements.sheetStatus.style.color = '#e74c3c';
+            }
+        }
+
+        function setButtonLoading(button, isLoading) {
+            const originalHTML = button.innerHTML;
+            if (isLoading) {
+                button.dataset.originalHTML = originalHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังประมวลผล...';
+                button.disabled = true;
+            } else {
+                if (button.dataset.originalHTML) {
+                    button.innerHTML = button.dataset.originalHTML;
+                }
+                button.disabled = false;
+            }
         }
 
         // ============================================
-        // 4. ฟังก์ชันจัดการประวัติการค้นหา
+        // 4. ฟังก์ชันจัดการการตั้งค่าและ Google Sheets
+        // ============================================
+        function saveConfig() {
+            const newConfig = {
+                sheetId: elements.sheetId.value.trim(),
+                sheetName: elements.sheetName.value.trim() || 'Sheet1'
+            };
+            
+            if (!newConfig.sheetId) {
+                showMessage('error', 'กรุณากรอก Google Sheet ID');
+                elements.sheetId.focus();
+                return;
+            }
+            
+            sheetConfig = newConfig;
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(sheetConfig));
+            
+            showMessage('success', 'บันทึกการตั้งค่าเรียบร้อยแล้ว');
+            updateSystemStatus();
+            
+            console.log('💾 บันทึกการตั้งค่า:', sheetConfig);
+        }
+
+        function loadConfig() {
+            try {
+                const savedConfig = localStorage.getItem(CONFIG_KEY);
+                if (savedConfig) {
+                    sheetConfig = JSON.parse(savedConfig);
+                    elements.sheetId.value = sheetConfig.sheetId;
+                    elements.sheetName.value = sheetConfig.sheetName;
+                    console.log('📂 โหลดการตั้งค่าจาก Local Storage:', sheetConfig);
+                }
+            } catch (error) {
+                console.error('❌ โหลดการตั้งค่าล้มเหลว:', error);
+            }
+        }
+
+        async function loadDataFromGoogleSheets() {
+            if (!sheetConfig.sheetId) {
+                showMessage('error', 'กรุณาตั้งค่า Google Sheet ID ก่อน');
+                return;
+            }
+            
+            setButtonLoading(elements.loadDataBtn, true);
+            showLoading(true, 'กำลังโหลดข้อมูลจาก Google Sheets...');
+            
+            try {
+                console.log('📥 กำลังโหลดข้อมูลจาก Google Sheets...');
+                
+                // สร้าง URL สำหรับ Google Sheets API (Public Sheet)
+                // ใช้ Google Visualization API Query
+                const sheetId = sheetConfig.sheetId;
+                const sheetName = encodeURIComponent(sheetConfig.sheetName);
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+                
+                console.log('🔗 URL:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                
+                // แปลงข้อมูลจาก Google Visualization API format
+                const jsonStart = text.indexOf('{');
+                const jsonText = text.substring(jsonStart, text.length - 2); // ตัด ; ออก
+                const data = JSON.parse(jsonText);
+                
+                // แปลงข้อมูลเป็น array ของ objects
+                const rows = data.table.rows;
+                const cols = data.table.cols;
+                
+                sheetData = rows.map(row => {
+                    const obj = {};
+                    cols.forEach((col, index) => {
+                        const cell = row.c[index];
+                        obj[col.label] = cell ? (cell.v || '') : '';
+                    });
+                    return obj;
+                });
+                
+                console.log('✅ โหลดข้อมูลสำเร็จ:', sheetData);
+                console.log('📊 จำนวนข้อมูล:', sheetData.length);
+                
+                if (sheetData.length > 0) {
+                    console.log('🏷️ คอลัมน์:', Object.keys(sheetData[0]));
+                }
+                
+                updateSystemStatus();
+                updateSampleButtons();
+                
+                showMessage('success', `โหลดข้อมูลสำเร็จ ${sheetData.length} รายการ`);
+                
+            } catch (error) {
+                console.error('❌ โหลดข้อมูลล้มเหลว:', error);
+                
+                let errorMessage = 'โหลดข้อมูลล้มเหลว: ';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'ไม่สามารถเชื่อมต่อกับ Google Sheets ได้';
+                } else if (error.message.includes('404')) {
+                    errorMessage += 'ไม่พบ Google Sheet ที่ระบุ';
+                } else if (error.message.includes('SyntaxError')) {
+                    errorMessage += 'รูปแบบข้อมูลจาก Google Sheets ไม่ถูกต้อง';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showMessage('error', errorMessage);
+                
+                // ใช้ข้อมูลตัวอย่างแทน
+                loadSampleDataAsFallback();
+                
+            } finally {
+                setButtonLoading(elements.loadDataBtn, false);
+                showLoading(false);
+            }
+        }
+
+        function loadSampleDataAsFallback() {
+            console.log('🔄 กำลังโหลดข้อมูลตัวอย่างแทน...');
+            
+            const sampleData = [
+                {
+                    'เลขที่แปลง': '10001145I1',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'บริษัท อินเทค จำกัด',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '2.5 ไร่',
+                    'สถานะ': 'ดำเนินการ',
+                    'หมายเหตุ': 'แปลง IN-TECH หมายเลข 001',
+                    'ประเภท': 'โรงงาน',
+                    'เริ่มโครงการ': '01/01/2023'
+                },
+                {
+                    'เลขที่แปลง': 'IN-TECH-002',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'นายสมชาย ใจดี',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '1 ไร่',
+                    'สถานะ': 'รอดำเนินการ',
+                    'หมายเหตุ': 'แปลงปลูกผักอินทรีย์',
+                    'ประเภท': 'เกษตร',
+                    'เริ่มโครงการ': '15/03/2023'
+                },
+                {
+                    'เลขที่แปลง': '2000223344',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'นางสาวสุนิดา รักธรรม',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '3 ไร่',
+                    'สถานะ': 'เสร็จสิ้น',
+                    'หมายเหตุ': 'แปลงศูนย์กระจายสินค้า',
+                    'ประเภท': 'คลังสินค้า',
+                    'เริ่มโครงการ': '10/02/2023'
+                },
+                {
+                    'เลขที่แปลง': 'TECH-003',
+                    'ชื่อโครงการ': 'ผ่ากอ',
+                    'เจ้าของ': 'บริษัท เทคโนโลยี ไทย จำกัด',
+                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
+                    'พื้นที่': '5 ไร่',
+                    'สถานะ': 'ดำเนินการ',
+                    'หมายเหตุ': 'แปลงโรงงานผลิต',
+                    'ประเภท': 'โรงงาน',
+                    'เริ่มโครงการ': '20/01/2023'
+                }
+            ];
+            
+            sheetData = sampleData;
+            updateSystemStatus();
+            updateSampleButtons();
+            
+            showMessage('info', 'ใช้ข้อมูลตัวอย่างแทนเนื่องจากโหลดจาก Google Sheets ล้มเหลว');
+        }
+
+        // ============================================
+        // 5. ฟังก์ชันจัดการประวัติการค้นหา
         // ============================================
         function saveSearchHistory(searchTerm) {
             let history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY)) || [];
             
-            // เอา searchTerm ออกถ้ามีอยู่แล้ว
             history = history.filter(item => item.toLowerCase() !== searchTerm.toLowerCase());
-            
-            // เพิ่ม searchTerm ไปด้านหน้า
             history.unshift(searchTerm);
-            
-            // จำกัดจำนวนรายการ
             history = history.slice(0, MAX_HISTORY);
             
             localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-            
-            // อัปเดตการแสดงผลประวัติ
             updateHistoryDisplay();
         }
 
@@ -591,7 +905,7 @@
         }
 
         // ============================================
-        // 5. ฟังก์ชันค้นหาข้อมูล
+        // 6. ฟังก์ชันค้นหาข้อมูล
         // ============================================
         function validateInput(searchTerm) {
             searchTerm = searchTerm.trim();
@@ -604,6 +918,10 @@
                 throw new Error('กรุณากรอกอย่างน้อย 2 ตัวอักษร');
             }
             
+            if (sheetData.length === 0) {
+                throw new Error('ไม่มีข้อมูลในระบบ กรุณาโหลดข้อมูลก่อน');
+            }
+            
             return searchTerm;
         }
 
@@ -612,12 +930,13 @@
                 const searchTerm = validateInput(elements.searchInput.value);
                 
                 console.log(`🔍 เริ่มค้นหา: "${searchTerm}"`);
-                showLoading(true);
+                showLoading(true, 'กำลังค้นหาข้อมูล...');
                 elements.resultsContainer.innerHTML = '';
                 
                 // บันทึกประวัติการค้นหา
                 saveSearchHistory(searchTerm);
                 
+                // หน่วงเวลาเล็กน้อยเพื่อให้เห็น animation
                 setTimeout(() => {
                     try {
                         const results = searchInData(searchTerm);
@@ -673,7 +992,8 @@
                 if (found) {
                     results.push({
                         ...item,
-                        _matchInfo: `พบในคอลัมน์: ${foundInColumn}`
+                        _matchInfo: `พบในคอลัมน์: ${foundInColumn}`,
+                        _index: index
                     });
                 }
             });
@@ -683,7 +1003,7 @@
         }
 
         // ============================================
-        // 6. ฟังก์ชันแสดงผลลัพธ์
+        // 7. ฟังก์ชันแสดงผลลัพธ์
         // ============================================
         function displayResults(results, searchTerm) {
             elements.resultsContainer.innerHTML = '';
@@ -716,13 +1036,15 @@
                     พบ ${results.length} รายการที่ตรงกับ "${searchTerm}"
                 </h3>
                 <p style="margin-top: 5px; color: #5f6368;">
-                    ${results.length > 5 ? 'กรุณากรอกคำค้นหาให้เฉพาะเจาะจงมากขึ้น' : 'ข้อมูลที่ค้นพบทั้งหมด'}
+                    ${results.length > 10 ? 'แสดง 10 รายการแรก (กรุณากรอกคำค้นหาให้เฉพาะเจาะจงมากขึ้น)' : 'ข้อมูลที่ค้นพบทั้งหมด'}
                 </p>
             `;
             elements.resultsContainer.appendChild(header);
             
-            // แสดงแต่ละผลลัพธ์
-            results.forEach((item, index) => {
+            // แสดงแต่ละผลลัพธ์ (จำกัดที่ 10 รายการ)
+            const displayResults = results.slice(0, 10);
+            
+            displayResults.forEach((item, index) => {
                 const resultCard = document.createElement('div');
                 resultCard.className = 'result-item';
                 
@@ -730,20 +1052,22 @@
                     <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #1a73e8;">
                         <h4 style="color: #1a73e8; margin: 0;">
                             <i class="fas fa-map-marker-alt"></i>
-                            ผลการค้นหาที่ ${index + 1}
+                            ผลการค้นหาที่ ${index + 1} (แถวที่ ${item._index + 1} ใน Google Sheet)
                         </h4>
                         ${item._matchInfo ? `<p style="color: #666; font-size: 0.9em; margin-top: 5px;">${item._matchInfo}</p>` : ''}
                     </div>
                 `;
                 
                 // แสดงข้อมูลทั้งหมด
+                let rowCount = 0;
                 for (const key in item) {
                     if (key.startsWith('_')) continue;
                     
                     let value = item[key] || '(ไม่มีข้อมูล)';
+                    rowCount++;
                     
                     // เน้นข้อความที่ค้นพบ
-                    if (typeof value === 'string') {
+                    if (typeof value === 'string' && value.length > 0) {
                         const searchPattern = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         const regex = new RegExp(`(${searchPattern})`, 'gi');
                         value = value.replace(regex, '<span class="highlight">$1</span>');
@@ -759,7 +1083,8 @@
                 
                 // เพิ่มปุ่มคัดลอกข้อมูล
                 html += `
-                    <div style="margin-top: 15px; text-align: right;">
+                    <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <small style="color: #666;">${rowCount} ฟิลด์ข้อมูล</small>
                         <button class="btn btn-secondary copy-btn" data-index="${index}" 
                                 style="padding: 8px 16px; font-size: 0.9rem;">
                             <i class="far fa-copy"></i> คัดลอกข้อมูล
@@ -771,101 +1096,58 @@
                 elements.resultsContainer.appendChild(resultCard);
             });
             
+            // แสดงข้อความถ้ามีผลลัพธ์มากกว่า 10 รายการ
+            if (results.length > 10) {
+                const warning = document.createElement('div');
+                warning.className = 'result-item';
+                warning.style.backgroundColor = '#FFF3CD';
+                warning.style.borderLeftColor = '#FFC107';
+                warning.innerHTML = `
+                    <p><i class="fas fa-info-circle"></i> พบผลลัพธ์ทั้งหมด ${results.length} รายการ แต่แสดงเพียง 10 รายการแรก</p>
+                    <p>กรุณากรอกคำค้นหาให้เฉพาะเจาะจงมากขึ้นเพื่อลดจำนวนผลลัพธ์</p>
+                `;
+                elements.resultsContainer.appendChild(warning);
+            }
+            
             // เพิ่ม event listener สำหรับปุ่มคัดลอก
             document.querySelectorAll('.copy-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    copyResultToClipboard(results[index]);
+                    const index = parseInt(this.getAttribute('data-index'));
+                    copyResultToClipboard(displayResults[index]);
                 });
             });
         }
 
         // ============================================
-        // 7. ฟังก์ชันโหลดข้อมูล
+        // 8. ฟังก์ชันอัพเดตตัวอย่างปุ่ม
         // ============================================
-        function loadSampleData() {
-            console.log('📥 กำลังโหลดข้อมูลตัวอย่าง...');
-            
-            // ข้อมูลตัวอย่าง
-            const sampleData = [
-                {
-                    'เลขที่แปลง': '10001145I1',
-                    'ชื่อโครงการ': 'ผ่ากอ',
-                    'เจ้าของ': 'บริษัท อินเทค จำกัด',
-                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
-                    'พื้นที่': '2.5 ไร่',
-                    'สถานะ': 'ดำเนินการ',
-                    'หมายเหตุ': 'แปลง IN-TECH หมายเลข 001',
-                    'ประเภท': 'โรงงาน',
-                    'เริ่มโครงการ': '01/01/2023'
-                },
-                {
-                    'เลขที่แปลง': 'IN-TECH-002',
-                    'ชื่อโครงการ': 'ผ่ากอ',
-                    'เจ้าของ': 'นายสมชาย ใจดี',
-                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
-                    'พื้นที่': '1 ไร่',
-                    'สถานะ': 'รอดำเนินการ',
-                    'หมายเหตุ': 'แปลงปลูกผักอินทรีย์',
-                    'ประเภท': 'เกษตร',
-                    'เริ่มโครงการ': '15/03/2023'
-                },
-                {
-                    'เลขที่แปลง': '2000223344',
-                    'ชื่อโครงการ': 'ผ่ากอ',
-                    'เจ้าของ': 'นางสาวสุนิดา รักธรรม',
-                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
-                    'พื้นที่': '3 ไร่',
-                    'สถานะ': 'เสร็จสิ้น',
-                    'หมายเหตุ': 'แปลงศูนย์กระจายสินค้า',
-                    'ประเภท': 'คลังสินค้า',
-                    'เริ่มโครงการ': '10/02/2023'
-                },
-                {
-                    'เลขที่แปลง': 'TECH-003',
-                    'ชื่อโครงการ': 'ผ่ากอ',
-                    'เจ้าของ': 'บริษัท เทคโนโลยี ไทย จำกัด',
-                    'ที่ตั้ง': 'อ.เมือง จ.เชียงใหม่',
-                    'พื้นที่': '5 ไร่',
-                    'สถานะ': 'ดำเนินการ',
-                    'หมายเหตุ': 'แปลงโรงงานผลิต',
-                    'ประเภท': 'โรงงาน',
-                    'เริ่มโครงการ': '20/01/2023'
-                },
-                {
-                    'เลขที่แปลง': 'PAKA-004',
-                    'ชื่อโครงการ': 'ผ่ากอ',
-                    'เจ้าของ': 'หจก.พัฒนาการเกษตร',
-                    'ที่ตั้ง': 'อ.สันทราย จ.เชียงใหม่',
-                    'พื้นที่': '10 ไร่',
-                    'สถานะ': 'วางแผน',
-                    'หมายเหตุ': 'แปลงทดลองเกษตรผสมผสาน',
-                    'ประเภท': 'วิจัย',
-                    'เริ่มโครงการ': '01/04/2023'
-                }
-            ];
-            
-            sheetData = sampleData;
-            updateSystemStatus();
-            showMessage('success', `โหลดข้อมูลตัวอย่างสำเร็จ ${sheetData.length} รายการ`);
-            
-            // อัปเดตตัวอย่างปุ่มค้นหา
-            updateSampleButtons();
-            
-            console.log('✅ โหลดข้อมูลตัวอย่างเสร็จสิ้น');
-            return true;
-        }
-
         function updateSampleButtons() {
             elements.sampleButtons.innerHTML = '';
             
-            // สร้างปุ่มตัวอย่างจากข้อมูลที่มี
-            const sampleTerms = ['10001145I1', 'IN-TECH', 'TECH', 'PAKA', 'ผ่ากอ'];
+            if (sheetData.length === 0) return;
             
-            sampleTerms.forEach(term => {
+            // หาตัวอย่างข้อมูลจากคอลัมน์แรก (เลขที่แปลง)
+            const sampleValues = new Set();
+            const firstColumn = Object.keys(sheetData[0])[0];
+            
+            sheetData.slice(0, 5).forEach(item => {
+                const value = item[firstColumn];
+                if (value && value.trim()) {
+                    sampleValues.add(value);
+                }
+            });
+            
+            // เพิ่มตัวอย่างทั่วไป
+            sampleValues.add('IN-TECH');
+            sampleValues.add('TECH');
+            sampleValues.add('ผ่ากอ');
+            
+            // สร้างปุ่ม
+            Array.from(sampleValues).slice(0, 6).forEach(term => {
                 const btn = document.createElement('button');
                 btn.className = 'sample-btn';
-                btn.textContent = term;
+                btn.textContent = String(term).substring(0, 20) + (String(term).length > 20 ? '...' : '');
+                btn.title = term;
                 btn.addEventListener('click', () => {
                     elements.searchInput.value = term;
                     performSearch();
@@ -875,7 +1157,7 @@
         }
 
         // ============================================
-        // 8. ฟังก์ชันทดสอบระบบ
+        // 9. ฟังก์ชันทดสอบระบบ
         // ============================================
         function testSystem() {
             console.group('🧪 ทดสอบระบบค้นหา');
@@ -885,29 +1167,28 @@
             
             if (sheetData.length > 0) {
                 console.log('🏷️ คอลัมน์ทั้งหมด:', Object.keys(sheetData[0]));
+                console.log('📄 ตัวอย่างข้อมูล 3 รายการแรก:', sheetData.slice(0, 3));
             }
             
-            // ทดสอบค้นหาตัวอย่าง
-            const testTerms = ['10001145I1', 'IN-TECH', 'ผ่ากอ', 'XXX'];
+            console.log('⚙️ การตั้งค่า Google Sheets:', sheetConfig);
             
-            testTerms.forEach(term => {
-                console.log(`🔍 ทดสอบค้นหา "${term}":`);
-                const results = searchInData(term);
-                console.log(`   ผล: ${results.length} รายการ`);
-                
-                if (results.length > 0) {
-                    console.log('   ตัวอย่างข้อมูลแรก:', results[0]);
+            // ทดสอบค้นหาตัวอย่าง
+            if (sheetData.length > 0) {
+                const firstValue = sheetData[0][Object.keys(sheetData[0])[0]];
+                if (firstValue) {
+                    console.log(`🔍 ทดสอบค้นหา "${firstValue}":`);
+                    const results = searchInData(firstValue);
+                    console.log(`   ผล: ${results.length} รายการ`);
                 }
-            });
+            }
             
             console.groupEnd();
             
             showMessage('success', 'ทดสอบระบบสำเร็จ! ดูผลลัพธ์ใน Console (F12)');
-            elements.searchInput.value = "1000114511";
         }
 
         // ============================================
-        // 9. ฟังก์ชันเสริม
+        // 10. ฟังก์ชันเสริม
         // ============================================
         function clearSearch() {
             elements.searchInput.value = '';
@@ -948,25 +1229,22 @@
         }
 
         // ============================================
-        // 10. ตั้งค่า Event Listeners
+        // 11. ตั้งค่า Event Listeners
         // ============================================
         function setupEventListeners() {
             console.log('🔌 กำลังตั้งค่า Event Listeners...');
+            
+            // ปุ่มบันทึกการตั้งค่า
+            elements.saveConfigBtn.addEventListener('click', saveConfig);
+            
+            // ปุ่มโหลดข้อมูล
+            elements.loadDataBtn.addEventListener('click', loadDataFromGoogleSheets);
             
             // ปุ่มค้นหา
             elements.searchBtn.addEventListener('click', performSearch);
             
             // ปุ่มล้าง
             elements.clearBtn.addEventListener('click', clearSearch);
-            
-            // ปุ่มโหลดข้อมูล
-            elements.loadDataBtn.addEventListener('click', function() {
-                showLoading(true);
-                setTimeout(() => {
-                    loadSampleData();
-                    showLoading(false);
-                }, 1000);
-            });
             
             // ปุ่มทดสอบ
             elements.testBtn.addEventListener('click', testSystem);
@@ -982,20 +1260,30 @@
                 }
             });
             
+            // กด Enter ในช่องตั้งค่า
+            [elements.sheetId, elements.sheetName].forEach(input => {
+                input.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        saveConfig();
+                    }
+                });
+            });
+            
             console.log('✅ ตั้งค่า Event Listeners เสร็จสิ้น');
         }
 
         // ============================================
-        // 11. เริ่มต้นระบบ
+        // 12. เริ่มต้นระบบ
         // ============================================
         function initializeSystem() {
             console.log('🚀 กำลังเริ่มต้นระบบค้นหา...');
             
+            // โหลดการตั้งค่าที่บันทึกไว้
+            loadConfig();
+            
             // ตั้งค่า Event Listeners
             setupEventListeners();
-            
-            // โหลดข้อมูลตัวอย่าง
-            loadSampleData();
             
             // อัปเดตประวัติการค้นหา
             updateHistoryDisplay();
@@ -1009,13 +1297,17 @@
             
             // แสดงข้อความต้อนรับ
             setTimeout(() => {
-                showMessage('info', 'ระบบพร้อมใช้งาน! ลองคลิกปุ่มตัวอย่างเพื่อค้นหา', 10000);
+                if (sheetConfig.sheetId) {
+                    showMessage('info', 'ระบบพร้อมใช้งาน! กดปุ่ม "โหลดข้อมูลจาก Google Sheets" เพื่อเริ่มต้น', 10000);
+                } else {
+                    showMessage('info', 'กรุณาตั้งค่า Google Sheet ID ก่อนใช้งาน', 10000);
+                }
                 console.log('🎉 ระบบพร้อมใช้งานแล้ว!');
             }, 1500);
         }
 
         // ============================================
-        // 12. เริ่มต้นระบบเมื่อหน้าโหลดเสร็จ
+        // 13. เริ่มต้นระบบเมื่อหน้าโหลดเสร็จ
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📄 หน้าเว็บโหลดเสร็จแล้ว');
@@ -1023,13 +1315,15 @@
         });
 
         // ============================================
-        // 13. ทำให้ฟังก์ชันหลักสามารถเรียกใช้จาก Console ได้
+        // 14. ทำให้ฟังก์ชันหลักสามารถเรียกใช้จาก Console ได้
         // ============================================
         window.performSearch = performSearch;
         window.clearSearch = clearSearch;
         window.testSystem = testSystem;
-        window.loadSampleData = loadSampleData;
+        window.loadDataFromGoogleSheets = loadDataFromGoogleSheets;
+        window.saveConfig = saveConfig;
         window.sheetData = sheetData;
+        window.sheetConfig = sheetConfig;
     </script>
 </body>
 </html>
