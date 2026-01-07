@@ -3,59 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ค้นหาเลขที่แปลงแปลงที่ดิน</title>
+    <title>ค้นหาเลขแปลง IN-TECH</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', 'Kanit', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', 'Kanit', sans-serif; }
         
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .container {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin-top: 40px;
         }
         
-        .search-section {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        .header {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 { 
+            font-size: 2.5rem; 
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
         
         .search-box {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .input-group {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
@@ -63,137 +56,65 @@
         
         input[type="text"] {
             flex: 1;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            padding: 18px 20px;
+            border: 3px solid #1a73e8;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
         }
         
         input[type="text"]:focus {
-            border-color: #1a73e8;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+            border-color: #0d62d9;
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.2);
         }
         
-        button {
-            background-color: #1a73e8;
-            color: white;
+        .btn {
+            padding: 18px 30px;
             border: none;
-            padding: 15px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
             font-weight: 600;
-            transition: background-color 0.3s;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            transition: all 0.3s;
         }
         
-        button:hover {
-            background-color: #0d62d9;
+        .btn-primary {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d62d9 100%);
+            color: white;
         }
         
-        button.clear {
-            background-color: #f1f3f4;
+        .btn-secondary {
+            background: #f8f9fa;
             color: #5f6368;
+            border: 2px solid #ddd;
         }
         
-        button.clear:hover {
-            background-color: #e8eaed;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
         
-        .info-box {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .info-item {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #5f6368;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .info-value {
-            font-size: 1.1rem;
-            color: #202124;
-        }
-        
-        .results-section {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #1a73e8;
-            border-bottom: 2px solid #e8eaed;
-            padding-bottom: 10px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        
-        th {
-            background-color: #f1f3f4;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: #5f6368;
-            border-bottom: 2px solid #ddd;
-        }
-        
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #5f6368;
-        }
-        
-        .no-data i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #dadce0;
+        .result-section {
+            padding: 30px;
+            min-height: 300px;
         }
         
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 60px 20px;
+            color: #5f6368;
         }
         
         .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1a73e8;
             border-radius: 50%;
-            border-top: 4px solid #1a73e8;
-            width: 40px;
-            height: 40px;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
@@ -203,233 +124,299 @@
             100% { transform: rotate(360deg); }
         }
         
-        .error-message {
-            background-color: #fce8e6;
-            color: #c5221f;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .success-message {
-            background-color: #e6f4ea;
-            color: #137333;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #5f6368;
-            font-size: 0.9rem;
-            padding-top: 20px;
-            border-top: 1px solid #e8eaed;
-        }
-        
-        .data-view {
-            background-color: #f8f9fa;
+        .alert {
             padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             display: none;
+        }
+        
+        .alert-error {
+            background: #fde8e8;
+            color: #c53030;
+            border: 2px solid #feb2b2;
+        }
+        
+        .alert-success {
+            background: #e6fffa;
+            color: #234e52;
+            border: 2px solid #81e6d9;
+        }
+        
+        .data-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .data-row {
             display: flex;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .data-row:last-child {
+            border-bottom: none;
         }
         
         .data-label {
             font-weight: 600;
-            color: #5f6368;
-            width: 200px;
-            min-width: 200px;
+            color: #4a5568;
+            width: 180px;
+            min-width: 180px;
         }
         
         .data-value {
+            color: #2d3748;
             flex: 1;
-            color: #202124;
-            word-break: break-word;
         }
         
         .highlight {
-            background-color: #FFF9C4;
-            padding: 2px 5px;
-            border-radius: 3px;
+            background: #ffeaa7;
+            padding: 2px 6px;
+            border-radius: 4px;
             font-weight: bold;
         }
         
-        @media (max-width: 768px) {
-            .search-box {
-                flex-direction: column;
-            }
-            
-            .info-box {
-                flex-direction: column;
-            }
-            
-            table {
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .data-row {
-                flex-direction: column;
-            }
-            
-            .data-label {
-                width: 100%;
-                margin-bottom: 5px;
-            }
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+        
+        .no-data i {
+            font-size: 4rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background: #f0f9ff;
+            border: 2px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .instructions h3 {
+            color: #0369a1;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sheet-link {
+            display: block;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: monospace;
+            color: #2d3748;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1><i class="fas fa-search"></i> ค้นหาเลขที่แปลงแปลงที่ดิน</h1>
-        <p class="subtitle">ระบบค้นหาเลขที่แปลงจาก Google Sheet</p>
-    </header>
-    
     <div class="container">
-        <div class="search-section">
-            <h2 class="section-title"><i class="fas fa-search"></i> ค้นหาเลขที่แปลง</h2>
-            
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="ป้อนเลขที่แปลงที่ต้องการค้นหา เช่น 1000114511" autocomplete="off">
-                <button id="searchBtn"><i class="fas fa-search"></i> ค้นหาข้อมูล</button>
-                <button class="clear" id="clearBtn"><i class="fas fa-eraser"></i> ล้าง</button>
-            </div>
-            
-            <div class="info-box">
-                <div class="info-item">
-                    <div class="info-label">แหล่งข้อมูล</div>
-                    <div class="info-value" id="dataSource">Google Sheets</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">สถานะระบบ</div>
-                    <div class="info-value" id="dataStatus">พร้อมใช้งาน</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">อัปเดตล่าสุด</div>
-                    <div class="info-value" id="lastUpdated">-</div>
-                </div>
-            </div>
-            
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
+        <div class="header">
+            <h1><i class="fas fa-search"></i> ค้นหาเลขแปลง IN-TECH</h1>
+            <p>ระบบค้นหาเลขแปลงจาก Google Sheet โครงการผ่ากอ</p>
         </div>
         
-        <div class="results-section">
-            <h2 class="section-title"><i class="fas fa-file-alt"></i> ผลการค้นหา</h2>
-            <div id="resultsContainer">
-                <div class="no-data" id="initialMessage">
-                    <i class="fas fa-search"></i>
-                    <p>กรุณาป้อนเลขที่แปลงที่ต้องการค้นหา</p>
-                    <p style="margin-top: 10px; font-size: 0.9rem;">ระบบจะดึงข้อมูลจาก Google Sheet อัตโนมัติ</p>
-                </div>
-                
-                <div class="loading" id="loadingIndicator" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>กำลังค้นหาข้อมูล...</p>
-                </div>
-                
-                <!-- ข้อมูลที่พบจะแสดงที่นี่ -->
-                <div id="searchResults"></div>
+        <div class="search-box">
+            <div class="input-group">
+                <input type="text" id="searchInput" 
+                       placeholder="กรอกเลขแปลงที่ต้องการค้นหา เช่น 1000114511" 
+                       autocomplete="off">
+                <button class="btn btn-primary" id="searchBtn">
+                    <i class="fas fa-search"></i> ค้นหา
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">
+                    <i class="fas fa-eraser"></i> ล้าง
+                </button>
             </div>
+            
+            <div class="alert alert-error" id="errorAlert"></div>
+            <div class="alert alert-success" id="successAlert"></div>
+        </div>
+        
+        <div class="result-section" id="resultSection">
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>กำลังค้นหาข้อมูลจาก Google Sheet...</p>
+            </div>
+            
+            <div class="no-data" id="noData">
+                <i class="fas fa-search"></i>
+                <h3>ยังไม่ได้ค้นหา</h3>
+                <p>กรุณากรอกเลขแปลงที่ต้องการค้นหาในช่องด้านบน</p>
+            </div>
+            
+            <div id="results"></div>
         </div>
     </div>
     
-    <footer>
-        <p>ระบบค้นหาเลขที่แปลงแปลงที่ดิน | อัปเดตล่าสุด: <span id="footerUpdated">-</span></p>
-        <p>พัฒนาโดย GitHub Project | แหล่งข้อมูล: Google Sheet</p>
-    </footer>
+    <div class="instructions" id="instructions">
+        <h3><i class="fas fa-info-circle"></i> หากค้นหาไม่ได้ ให้ทำตามขั้นตอนนี้:</h3>
+        <p>1. เปิด Google Sheet นี้ในเบราว์เซอร์:</p>
+        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true" 
+           target="_blank" class="sheet-link">
+           https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true
+        </a>
+        <p>2. คลิกขวาที่หน้า → <strong>"View Page Source"</strong> (ดูโค้ดต้นฉบับ)</p>
+        <p>3. คัดลอกเนื้อหาทั้งหมด (Ctrl+A, Ctrl+C)</p>
+        <p>4. วางลงในกล่องด้านล่างนี้ แล้วกดปุ่ม "ดึงข้อมูล"</p>
+        <textarea id="htmlInput" rows="6" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px; font-family: monospace;"></textarea>
+        <button class="btn btn-primary" id="parseBtn" style="margin-top:15px;">
+            <i class="fas fa-code"></i> ดึงข้อมูลจาก HTML
+        </button>
+    </div>
 
     <script>
+        // องค์ประกอบ DOM
+        const elements = {
+            searchInput: document.getElementById('searchInput'),
+            searchBtn: document.getElementById('searchBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            resultSection: document.getElementById('resultSection'),
+            loading: document.getElementById('loading'),
+            noData: document.getElementById('noData'),
+            results: document.getElementById('results'),
+            errorAlert: document.getElementById('errorAlert'),
+            successAlert: document.getElementById('successAlert'),
+            instructions: document.getElementById('instructions'),
+            htmlInput: document.getElementById('htmlInput'),
+            parseBtn: document.getElementById('parseBtn')
+        };
+        
         // ข้อมูลจาก Google Sheet
         let sheetData = [];
-        let lastUpdated = '-';
+        let searchHistory = [];
         
-        // URL ของ Google Sheet ของคุณ
-        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true';
+        // แสดง/ซ่อนข้อความโหลด
+        function showLoading(show) {
+            elements.loading.style.display = show ? 'block' : 'none';
+            elements.noData.style.display = 'none';
+            if (show) elements.results.innerHTML = '';
+        }
         
-        // DOM Elements
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const resultsContainer = document.getElementById('searchResults');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const initialMessage = document.getElementById('initialMessage');
-        const dataStatus = document.getElementById('dataStatus');
-        const dataSource = document.getElementById('dataSource');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const lastUpdatedElement = document.getElementById('lastUpdated');
-        const footerUpdated = document.getElementById('footerUpdated');
+        // แสดงข้อความแจ้งเตือน
+        function showAlert(type, message) {
+            const alert = type === 'error' ? elements.errorAlert : elements.successAlert;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            if (type === 'success') {
+                elements.errorAlert.style.display = 'none';
+            } else {
+                elements.successAlert.style.display = 'none';
+            }
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, type === 'error' ? 5000 : 3000);
+        }
         
-        // โหลดข้อมูลจาก Google Sheet
-        async function loadGoogleSheetData() {
+        // ดึงข้อมูลจาก Google Sheet โดยตรง
+        async function fetchSheetData() {
+            showLoading(true);
+            
             try {
-                console.log('กำลังโหลดข้อมูลจาก Google Sheet...');
-                dataStatus.textContent = 'กำลังโหลดข้อมูล...';
+                // URL ของ Google Sheet
+                const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHlqFXL5N8DKNhyg8au_M9eypFk65rXRgXdCna7pO9gadqpHLmtcz8FHKeCaBlxuqGcIY60PxUhyu-/pubhtml?gid=980262450&single=true';
                 
-                // ใช้ CORS proxy เพื่อแก้ปัญหา CORS
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const response = await fetch(proxyUrl + encodeURIComponent(GOOGLE_SHEET_URL));
+                // ดึงข้อมูล HTML จาก Google Sheet
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(sheetUrl)}`);
                 
                 if (!response.ok) {
-                    throw new Error(`ไม่สามารถดึงข้อมูลได้: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                const htmlText = await response.text();
-                await parseGoogleSheetData(htmlText);
+                const data = await response.json();
                 
-                console.log('โหลดข้อมูลสำเร็จ:', sheetData.length, 'รายการ');
-                showSuccess('โหลดข้อมูลจาก Google Sheet สำเร็จ!');
-                dataStatus.textContent = 'พร้อมใช้งาน';
+                if (!data.contents) {
+                    throw new Error('ไม่พบข้อมูลใน Google Sheet');
+                }
+                
+                // แปลง HTML เป็นข้อมูล
+                const htmlContent = data.contents;
+                await parseGoogleSheetHTML(htmlContent);
+                
+                showAlert('success', `โหลดข้อมูลสำเร็จ! พบ ${sheetData.length} รายการ`);
+                
+                // แสดงวิธีการแก้ไขหากไม่พบข้อมูล
+                if (sheetData.length === 0) {
+                    elements.instructions.style.display = 'block';
+                }
                 
             } catch (error) {
-                console.error('Error loading Google Sheet:', error);
+                console.error('Error fetching sheet data:', error);
+                showAlert('error', `ไม่สามารถดึงข้อมูลจาก Google Sheet: ${error.message}`);
                 
-                // ถ้าไม่สามารถโหลดได้ ให้ใช้ข้อมูลตัวอย่าง
+                // แสดงวิธีการแก้ไข
+                elements.instructions.style.display = 'block';
+                
+                // ใช้ข้อมูลตัวอย่างแทน
                 useSampleData();
-                showError(`ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้: ${error.message}. กำลังใช้ข้อมูลตัวอย่าง`);
-                dataStatus.textContent = 'ใช้ข้อมูลตัวอย่าง';
+            } finally {
+                showLoading(false);
             }
         }
         
-        // แปลงข้อมูลจาก HTML ของ Google Sheet
-        async function parseGoogleSheetData(htmlText) {
+        // แปลง HTML จาก Google Sheet เป็นข้อมูล
+        async function parseGoogleSheetHTML(htmlContent) {
             try {
                 // สร้าง DOM จำลอง
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
+                const doc = parser.parseFromString(htmlContent, 'text/html');
                 
                 // หาตารางในเอกสาร
                 const table = doc.querySelector('table');
+                
                 if (!table) {
-                    throw new Error('ไม่พบตารางใน Google Sheet');
+                    // พยายามหาตารางด้วยวิธีอื่น
+                    const allTables = doc.querySelectorAll('table');
+                    console.log('Found tables:', allTables.length);
+                    
+                    if (allTables.length === 0) {
+                        throw new Error('ไม่พบตารางใน HTML');
+                    }
+                    
+                    // ใช้ตารางแรกที่พบ
+                    table = allTables[0];
                 }
                 
                 // ดึงแถวทั้งหมด
                 const rows = table.querySelectorAll('tr');
+                console.log('Found rows:', rows.length);
+                
                 if (rows.length < 2) {
-                    throw new Error('ไม่พบข้อมูลใน Google Sheet');
+                    throw new Error('ตารางไม่มีข้อมูลเพียงพอ');
                 }
                 
                 // ดึงหัวตาราง
                 const headerRow = rows[0];
                 const headerCells = headerRow.querySelectorAll('td, th');
-                const headers = Array.from(headerCells).map(cell => 
-                    cell.textContent.trim() || `คอลัมน์ ${Array.from(headerCells).indexOf(cell) + 1}`
-                );
+                const headers = Array.from(headerCells).map((cell, index) => {
+                    const text = cell.textContent.trim();
+                    return text || `คอลัมน์_${index + 1}`;
+                });
                 
-                // ดึงข้อมูล
+                console.log('Headers found:', headers);
+                
+                // ดึงข้อมูลจากแถวอื่นๆ
                 sheetData = [];
                 
                 for (let i = 1; i < rows.length; i++) {
@@ -444,314 +431,308 @@
                         }
                     }
                     
-                    // เพิ่มเฉพาะแถวที่มีข้อมูล
+                    // เพิ่มข้อมูลถ้ามีค่าอย่างน้อย 1 คอลัมน์
                     const hasData = Object.values(rowData).some(value => value !== '');
                     if (hasData) {
                         sheetData.push(rowData);
                     }
                 }
                 
-                // อัปเดตข้อมูลเวลา
-                updateLastUpdated();
+                console.log('Parsed data:', sheetData);
                 
-                console.log('ข้อมูลที่โหลดได้:', sheetData);
+                // บันทึกข้อมูลลง localStorage
+                localStorage.setItem('sheetData', JSON.stringify(sheetData));
+                localStorage.setItem('lastUpdated', new Date().toISOString());
                 
             } catch (error) {
-                console.error('Error parsing Google Sheet:', error);
+                console.error('Error parsing HTML:', error);
                 throw error;
             }
         }
         
-        // ใช้ข้อมูลตัวอย่าง (กรณีโหลด Google Sheet ไม่ได้)
+        // ใช้ข้อมูลตัวอย่าง (เมื่อดึงข้อมูลไม่ได้)
         function useSampleData() {
             sheetData = [
                 {
-                    'เลขที่แปลง': '1000114511',
-                    'ชื่อเจ้าของ': 'สมชาย ใจดี',
-                    'ที่อยู่': '123 หมู่ 4 ต.สุเทพ อ.เมือง จ.เชียงใหม่',
-                    'พื้นที่': '2 ไร่',
-                    'ประเภทที่ดิน': 'ที่ดินทำการเกษตร',
-                    'โฉนดที่ดินเลขที่': 'นส.12345',
-                    'อำเภอ': 'เมือง',
+                    'เลขแปลง': 'IN-TECH-001',
+                    'โครงการ': 'ผ่ากอ',
                     'จังหวัด': 'เชียงใหม่',
+                    'พื้นที่': '2 ไร่',
+                    'เจ้าของ': 'สมชาย ใจดี',
+                    'สถานะ': 'ดำเนินการ',
                     'หมายเหตุ': 'แปลงสวนมะม่วง'
                 },
                 {
-                    'เลขที่แปลง': '2000223344',
-                    'ชื่อเจ้าของ': 'สุนิดา รักธรรม',
-                    'ที่อยู่': '456 หมู่ 2 ต.ในเมือง อ.เมือง จ.ขอนแก่น',
-                    'พื้นที่': '1 ไร่ 2 งาน',
-                    'ประเภทที่ดิน': 'ที่อยู่อาศัย',
-                    'โฉนดที่ดินเลขที่': 'นส.67890',
-                    'อำเภอ': 'เมือง',
+                    'เลขแปลง': 'IN-TECH-002',
+                    'โครงการ': 'ผ่ากอ',
                     'จังหวัด': 'ขอนแก่น',
-                    'หมายเหตุ': 'บ้านพักอาศัย'
+                    'พื้นที่': '1.5 ไร่',
+                    'เจ้าของ': 'สุนิดา รักธรรม',
+                    'สถานะ': 'รอดำเนินการ',
+                    'หมายเหตุ': 'แปลงปลูกผัก'
                 },
                 {
-                    'เลขที่แปลง': '3000334455',
-                    'ชื่อเจ้าของ': 'ธนวัฒน์ พัฒนา',
-                    'ที่อยู่': '789 หมู่ 5 ต.ในเมือง อ.เมือง จ.นครราชสีมา',
-                    'พื้นที่': '3 ไร่',
-                    'ประเภทที่ดิน': 'ที่ดินทำการเกษตร',
-                    'โฉนดที่ดินเลขที่': 'นส.11223',
-                    'อำเภอ': 'เมือง',
+                    'เลขแปลง': 'IN-TECH-003',
+                    'โครงการ': 'ผ่ากอ',
                     'จังหวัด': 'นครราชสีมา',
+                    'พื้นที่': '3 ไร่',
+                    'เจ้าของ': 'ธนวัฒน์ พัฒนา',
+                    'สถานะ': 'เสร็จสิ้น',
                     'หมายเหตุ': 'แปลงนาข้าว'
                 },
                 {
-                    'เลขที่แปลง': '4000445566',
-                    'ชื่อเจ้าของ': 'อรุณี สุขใจ',
-                    'ที่อยู่': '321 หมู่ 3 ต.รอบเวียง อ.เมือง จ.เชียงราย',
-                    'พื้นที่': '0.5 ไร่',
-                    'ประเภทที่ดิน': 'ที่ดินว่างเปล่า',
-                    'โฉนดที่ดินเลขที่': 'นส.44556',
-                    'อำเภอ': 'เมือง',
+                    'เลขแปลง': '1000114511',
+                    'โครงการ': 'ผ่ากอ',
                     'จังหวัด': 'เชียงราย',
-                    'หมายเหตุ': 'เตรียมสร้างบ้าน'
+                    'พื้นที่': '0.5 ไร่',
+                    'เจ้าของ': 'อรุณี สุขใจ',
+                    'สถานะ': 'ดำเนินการ',
+                    'หมายเหตุ': 'ที่ดินว่าง'
                 },
                 {
-                    'เลขที่แปลง': '5000556677',
-                    'ชื่อเจ้าของ': 'วิรัช เมืองดี',
-                    'ที่อยู่': '654 หมู่ 1 ต.หาดใหญ่ อ.หาดใหญ่ จ.สงขลา',
-                    'พื้นที่': '5 ไร่',
-                    'ประเภทที่ดิน': 'สวนยางพารา',
-                    'โฉนดที่ดินเลขที่': 'นส.77889',
-                    'อำเภอ': 'หาดใหญ่',
+                    'เลขแปลง': 'IN-TECH-005',
+                    'โครงการ': 'ผ่ากอ',
                     'จังหวัด': 'สงขลา',
-                    'หมายเหตุ': 'สวนยางพาราเก่า'
+                    'พื้นที่': '5 ไร่',
+                    'เจ้าของ': 'วิรัช เมืองดี',
+                    'สถานะ': 'รอดำเนินการ',
+                    'หมายเหตุ': 'สวนยางพารา'
                 }
             ];
             
-            updateLastUpdated();
-            console.log('ใช้ข้อมูลตัวอย่าง:', sheetData);
-        }
-        
-        // อัปเดตเวลาล่าสุด
-        function updateLastUpdated() {
-            lastUpdated = new Date().toLocaleString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            
-            lastUpdatedElement.textContent = lastUpdated;
-            footerUpdated.textContent = lastUpdated;
+            console.log('Using sample data');
         }
         
         // ค้นหาข้อมูล
-        async function searchData() {
-            const searchTerm = searchInput.value.trim();
+        function searchData() {
+            const searchTerm = elements.searchInput.value.trim();
             
             if (!searchTerm) {
-                showError('กรุณาป้อนเลขที่แปลงที่ต้องการค้นหา');
+                showAlert('error', 'กรุณากรอกเลขแปลงที่ต้องการค้นหา');
                 return;
             }
             
-            // ถ้ายังไม่มีข้อมูล ให้โหลดข้อมูลก่อน
+            // ถ้ายังไม่มีข้อมูล ให้ดึงข้อมูลก่อน
             if (sheetData.length === 0) {
-                showLoading(true, 'กำลังโหลดข้อมูล...');
-                await loadGoogleSheetData();
-                showLoading(false);
+                fetchSheetData().then(() => {
+                    // เมื่อดึงข้อมูลเสร็จ ให้ค้นหา
+                    performSearch(searchTerm);
+                });
+            } else {
+                performSearch(searchTerm);
             }
-            
-            // ค้นหาข้อมูล
-            showLoading(true, 'กำลังค้นหาข้อมูล...');
+        }
+        
+        // ดำเนินการค้นหา
+        function performSearch(searchTerm) {
+            showLoading(true);
             
             setTimeout(() => {
-                const results = performSearch(searchTerm);
-                displaySearchResults(results, searchTerm);
-                showLoading(false);
+                try {
+                    // ค้นหาในคอลัมน์ต่างๆ
+                    const searchColumns = Object.keys(sheetData[0] || {}).filter(key => 
+                        key.toLowerCase().includes('แปลง') || 
+                        key.toLowerCase().includes('lot') || 
+                        key.toLowerCase().includes('number') ||
+                        key.toLowerCase().includes('id') ||
+                        key.toLowerCase().includes('เลข')
+                    );
+                    
+                    // หากไม่พบคอลัมน์ที่เหมาะสม ให้ค้นหาทุกคอลัมน์
+                    const columnsToSearch = searchColumns.length > 0 ? searchColumns : Object.keys(sheetData[0] || {});
+                    
+                    // ค้นหาข้อมูล
+                    const results = sheetData.filter(row => {
+                        for (const column of columnsToSearch) {
+                            if (row[column] && row[column].toString().toLowerCase().includes(searchTerm.toLowerCase())) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    
+                    // แสดงผลลัพธ์
+                    displayResults(results, searchTerm);
+                    
+                    // บันทึกประวัติการค้นหา
+                    searchHistory.unshift({
+                        term: searchTerm,
+                        results: results.length,
+                        time: new Date().toLocaleString('th-TH')
+                    });
+                    
+                    // เก็บเฉพาะ 10 อันดับล่าสุด
+                    if (searchHistory.length > 10) {
+                        searchHistory.pop();
+                    }
+                    
+                    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                    
+                } catch (error) {
+                    console.error('Search error:', error);
+                    showAlert('error', `เกิดข้อผิดพลาดในการค้นหา: ${error.message}`);
+                } finally {
+                    showLoading(false);
+                }
             }, 500);
         }
         
-        // ค้นหาจริงในข้อมูล
-        function performSearch(searchTerm) {
-            if (sheetData.length === 0) return [];
-            
-            // ค้นหาจากคอลัมน์ที่เกี่ยวข้องกับเลขที่แปลง
-            const lotNumberColumns = [
-                'เลขที่แปลง', 'แปลงที่', 'แปลง', 'Lot', 'lot', 'แปลงที่ดิน', 
-                'ที่ดินแปลงที่', 'เลขแปลง', 'รหัสแปลง', 'หมายเลขแปลง'
-            ];
-            
-            // หาคอลัมน์ที่มีอยู่ในข้อมูล
-            const existingColumns = Object.keys(sheetData[0]);
-            const searchColumns = lotNumberColumns.filter(col => 
-                existingColumns.some(existing => 
-                    existing.toLowerCase().includes(col.toLowerCase()) || 
-                    col.toLowerCase().includes(existing.toLowerCase())
-                )
-            );
-            
-            // ถ้าไม่เจอคอลัมน์ที่ตรง ให้ค้นหาทุกคอลัมน์
-            const columnsToSearch = searchColumns.length > 0 ? searchColumns : existingColumns;
-            
-            // ค้นหา
-            return sheetData.filter(row => {
-                for (const column of columnsToSearch) {
-                    if (row[column] && row[column].toString().toLowerCase().includes(searchTerm.toLowerCase())) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-        }
-        
-        // แสดงผลการค้นหา
-        function displaySearchResults(results, searchTerm) {
-            resultsContainer.innerHTML = '';
+        // แสดงผลลัพธ์
+        function displayResults(results, searchTerm) {
+            elements.results.innerHTML = '';
             
             if (results.length === 0) {
-                resultsContainer.innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-search"></i>
-                        <h3>ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"</h3>
-                        <p>กรุณาตรวจสอบเลขที่แปลงและลองอีกครั้ง</p>
-                        <p style="margin-top: 10px; font-size: 0.9rem; color: #5f6368;">
-                            ข้อมูลทั้งหมดในระบบ: ${sheetData.length} รายการ
-                        </p>
-                    </div>
+                elements.noData.innerHTML = `
+                    <i class="fas fa-search"></i>
+                    <h3>ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"</h3>
+                    <p>ลองตรวจสอบเลขแปลงและลองอีกครั้ง</p>
+                    <p style="margin-top: 10px; color: #718096; font-size: 0.9rem;">
+                        ข้อมูลทั้งหมดในระบบ: ${sheetData.length} รายการ
+                    </p>
                 `;
+                elements.noData.style.display = 'block';
                 return;
             }
             
-            // แสดงข้อมูลที่พบ
+            // แสดงผลลัพธ์ที่พบ
             results.forEach((result, index) => {
-                const resultElement = document.createElement('div');
-                resultElement.className = 'data-view';
-                resultElement.style.display = 'block';
+                const card = document.createElement('div');
+                card.className = 'data-card';
                 
                 let html = `
-                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #1a73e8;">
-                        <h3 style="color: #1a73e8;">
-                            <i class="fas fa-map-marker-alt"></i> 
-                            ผลการค้นหาที่ ${index + 1}: พบเลขที่แปลง "${highlightText(result['เลขที่แปลง'] || 'ไม่มีข้อมูล', searchTerm)}"
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #1a73e8; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ผลการค้นหาที่ ${index + 1}
                         </h3>
-                        <p style="color: #5f6368; margin-top: 5px;">
+                        <p style="color: #718096; margin-top: 5px;">
                             <i class="far fa-calendar-alt"></i> ค้นพบเมื่อ: ${new Date().toLocaleString('th-TH')}
                         </p>
                     </div>
                 `;
                 
-                // แสดงข้อมูลทั้งหมดในผลลัพธ์
+                // แสดงข้อมูลทั้งหมด
                 Object.keys(result).forEach(key => {
-                    const value = result[key] || 'ไม่มีข้อมูล';
-                    const highlightedValue = highlightText(value, searchTerm);
+                    let value = result[key] || 'ไม่มีข้อมูล';
+                    
+                    // เน้นข้อความที่ค้นหา
+                    if (typeof value === 'string') {
+                        const regex = new RegExp(`(${searchTerm})`, 'gi');
+                        value = value.replace(regex, '<span class="highlight">$1</span>');
+                    }
                     
                     html += `
                         <div class="data-row">
                             <div class="data-label">${key}:</div>
-                            <div class="data-value">${highlightedValue}</div>
+                            <div class="data-value">${value}</div>
                         </div>
                     `;
                 });
                 
-                resultElement.innerHTML = html;
-                resultsContainer.appendChild(resultElement);
+                card.innerHTML = html;
+                elements.results.appendChild(card);
             });
             
             // แสดงสรุปผล
             const summary = document.createElement('div');
-            summary.style.marginTop = '20px';
-            summary.style.padding = '15px';
+            summary.className = 'data-card';
             summary.style.backgroundColor = '#E8F0FE';
-            summary.style.borderRadius = '8px';
+            summary.style.borderColor = '#1a73e8';
+            
             summary.innerHTML = `
-                <h4 style="margin: 0 0 10px 0; color: #1a73e8;">
-                    <i class="fas fa-chart-bar"></i> สรุปผลการค้นหา
-                </h4>
-                <p style="margin: 0;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="fas fa-chart-bar" style="color: #1a73e8; font-size: 1.5rem;"></i>
+                    <h3 style="color: #1a73e8; margin: 0;">สรุปผลการค้นหา</h3>
+                </div>
+                <p style="margin: 0; color: #2d3748;">
                     <strong>พบทั้งหมด ${results.length} รายการ</strong> ที่ตรงกับ "${searchTerm}"
+                    <br>
                     จากข้อมูลทั้งหมด ${sheetData.length} รายการ
                 </p>
             `;
             
-            resultsContainer.appendChild(summary);
-        }
-        
-        // เน้นข้อความที่ค้นหา
-        function highlightText(text, searchTerm) {
-            if (!searchTerm || !text) return text;
-            
-            const regex = new RegExp(`(${searchTerm})`, 'gi');
-            return text.toString().replace(regex, '<span class="highlight">$1</span>');
-        }
-        
-        // แสดงสถานะการโหลด
-        function showLoading(isLoading, message = 'กำลังค้นหาข้อมูล...') {
-            if (isLoading) {
-                initialMessage.style.display = 'none';
-                loadingIndicator.style.display = 'block';
-                loadingIndicator.querySelector('p').textContent = message;
-                searchBtn.disabled = true;
-                searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังค้นหา...';
-            } else {
-                loadingIndicator.style.display = 'none';
-                searchBtn.disabled = false;
-                searchBtn.innerHTML = '<i class="fas fa-search"></i> ค้นหาข้อมูล';
-            }
-        }
-        
-        // แสดงข้อความข้อผิดพลาด
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
-        
-        // แสดงข้อความสำเร็จ
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
+            elements.results.appendChild(summary);
         }
         
         // ล้างการค้นหา
         function clearSearch() {
-            searchInput.value = '';
-            resultsContainer.innerHTML = '';
-            initialMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
+            elements.searchInput.value = '';
+            elements.results.innerHTML = '';
+            elements.noData.style.display = 'block';
+            elements.errorAlert.style.display = 'none';
+            elements.successAlert.style.display = 'none';
         }
         
-        // เริ่มต้นโหลดข้อมูลเมื่อเปิดหน้า
-        async function initialize() {
-            console.log('กำลังเริ่มต้นระบบ...');
+        // ดึงข้อมูลจาก HTML ที่ผู้ใช้วาง
+        function parseUserHTML() {
+            const htmlContent = elements.htmlInput.value.trim();
             
-            // โหลดข้อมูลจาก Google Sheet
-            await loadGoogleSheetData();
-            
-            // เตรียมฟังก์ชันค้นหาให้ทำงานจาก console
-            window.searchByPlotNumber = function(plotNumber) {
-                searchInput.value = plotNumber;
-                searchData();
-            };
-            
-            console.log('ระบบพร้อมใช้งานแล้ว!');
-            console.log('ใช้คำสั่ง searchByPlotNumber("1000114511") เพื่อค้นหาเลขที่แปลง');
-        }
-        
-        // Event Listeners
-        searchBtn.addEventListener('click', searchData);
-        clearBtn.addEventListener('click', clearSearch);
-        
-        searchInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                searchData();
+            if (!htmlContent) {
+                showAlert('error', 'กรุณาวางโค้ด HTML จาก Google Sheet');
+                return;
             }
-        });
+            
+            showLoading(true);
+            
+            setTimeout(() => {
+                try {
+                    parseGoogleSheetHTML(htmlContent);
+                    showAlert('success', `ดึงข้อมูลสำเร็จ! พบ ${sheetData.length} รายการ`);
+                    elements.instructions.style.display = 'none';
+                } catch (error) {
+                    showAlert('error', `ไม่สามารถดึงข้อมูลจาก HTML: ${error.message}`);
+                } finally {
+                    showLoading(false);
+                }
+            }, 1000);
+        }
         
-        // เริ่มต้นระบบเมื่อโหลดหน้าเว็บเสร็จ
+        // โหลดข้อมูลจาก localStorage (ถ้ามี)
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('sheetData');
+                if (savedData) {
+                    sheetData = JSON.parse(savedData);
+                    console.log('Loaded data from localStorage:', sheetData.length, 'items');
+                }
+                
+                const savedHistory = localStorage.getItem('searchHistory');
+                if (savedHistory) {
+                    searchHistory = JSON.parse(savedHistory);
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+            }
+        }
+        
+        // เริ่มต้นระบบ
+        function initialize() {
+            // โหลดข้อมูลจาก localStorage
+            loadFromLocalStorage();
+            
+            // ลองดึงข้อมูลจาก Google Sheet
+            fetchSheetData();
+            
+            // เพิ่ม Event Listeners
+            elements.searchBtn.addEventListener('click', searchData);
+            elements.clearBtn.addEventListener('click', clearSearch);
+            elements.parseBtn.addEventListener('click', parseUserHTML);
+            
+            elements.searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchData();
+                }
+            });
+            
+            // แสดงคำแนะนำหากไม่มีข้อมูล
+            setTimeout(() => {
+                if (sheetData.length === 0) {
+                    elements.instructions.style.display = 'block';
+                }
+            }, 3000);
+        }
+        
+        // เริ่มต้นระบบเมื่อโหลดหน้าเว็บ
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
