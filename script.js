@@ -1,8 +1,8 @@
 function searchInSheet() {
   try {
     // 1. เปิด Spreadsheet และ Sheet ที่ต้องการ
-    const spreadsheetId = 'YOUR_SPREADSHEET_ID'; // แทนที่ด้วย ID ของ Google Sheet ของคุณ
-    const sheetName = 'Sheet1'; // แทนที่ด้วยชื่อ Sheet ที่ต้องการ
+    const spreadsheetId = '15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw'; // แทนที่ด้วย ID ของ Google Sheet ของคุณ
+    const sheetName = 'สถานะ'; // แทนที่ด้วยชื่อ Sheet ที่ต้องการ
     
     const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
     const sheet = spreadsheet.getSheetByName(sheetName);
@@ -13,7 +13,7 @@ function searchInSheet() {
     }
     
     // 2. ค่าที่ต้องการค้นหา (จาก input)
-    const searchValue = "1000114511".toString().trim();
+    const searchValue = "10001145I1".toString().trim();
     console.log('กำลังค้นหา: "' + searchValue + '"');
     
     // 3. อ่านข้อมูลทั้งหมดจาก Sheet (พร้อม trim และแปลงเป็น string)
