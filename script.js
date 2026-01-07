@@ -1,12 +1,13 @@
 // ============================================
-// Google Sheet Viewer with IN-TECH Search
+// ระบบค้นหาเลขแปลง IN-TECH - โครงการผ่ากอ
 // ============================================
 
 const CONFIG = {
     SHEET_ID: '15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw',
     SHEET_NAME: 'สถานะ',
+    PROJECT_NAME: 'ผ่ากอ',
     
-    // ลองทีละวิธี (ระบบจะลองเองอัตโนมัติ)
+    // URL Methods for fetching data
     URL_METHODS: [
         {
             name: 'Published CSV',
@@ -22,103 +23,131 @@ const CONFIG = {
             name: 'Export CSV',
             url: 'https://docs.google.com/spreadsheets/d/15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw/export?format=csv',
             type: 'csv'
-        },
-        {
-            name: 'gviz/tq CSV',
-            url: 'https://docs.google.com/spreadsheets/d/15eCkphn1ZCWJu1fg3ppe3Os-bKxAb4alvC33mAEgGrw/gviz/tq?tqx=out:csv',
-            type: 'csv'
         }
     ],
     
-    // คอลัมน์ที่ใช้ค้นหาเลขแปลง (ปรับตามข้อมูลจริง)
-    SEARCH_COLUMNS: ['เลขแปลงและยกั', 'เลขโครงขา้', 'ชื่อราคาไฟ', 'ชื่อมโยงเกษตร'],
+    // Columns for IN-TECH number search
+    INTECH_SEARCH_COLUMNS: ['เลขแปลงและยกั', 'เลขโครงขา้', 'ชื่อราคาไฟ'],
     
-    ITEMS_PER_PAGE: 10,
-    CURRENT_METHOD_INDEX: 0
+    // Pagination
+    ITEMS_PER_PAGE: 15,
+    
+    // Cache settings
+    CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
 };
 
+// Global variables
 let allData = [];
-let currentPage = 1;
 let currentSearchResults = null;
+let currentSearchTerm = '';
+let currentPage = 1;
+let currentMethodIndex = 0;
 let searchHistory = [];
 
 // เมื่อหน้าเว็บโหลด
 $(document).ready(function() {
-    console.log('🚀 ระบบค้นหาเลขแปลง IN-TECH');
+    console.log('🚀 เริ่มต้นระบบค้นหาเลขแปลง IN-TECH - โครงการ' + CONFIG.PROJECT_NAME);
     
-    initializeUI();
-    loadData();
+    initializeEventListeners();
+    loadInitialData();
     
-    // โหลดประวัติการค้นหาจาก localStorage
+    // Load search history from localStorage
     loadSearchHistory();
 });
 
-function initializeUI() {
-    // ปุ่มโหลดข้อมูล
-    $('#loadDataBtn').click(function() {
-        loadData(true);
-        $(this).html('<i class="fas fa-spinner fa-spin"></i> โหลด...');
-        setTimeout(() => $(this).html('<i class="fas fa-sync"></i> โหลดข้อมูล'), 1000);
-    });
-    
-    // ปุ่มค้นหาเลขแปลง
+// ตั้งค่า Event Listeners
+function initializeEventListeners() {
+    // ปุ่มค้นหาเลขแปลง IN-TECH
     $('#searchIntechBtn').click(searchIntech);
     
     // ปุ่มค้นหาทั่วไป
     $('#searchGeneralBtn').click(searchGeneral);
     
+    // ปุ่มโหลดข้อมูลใหม่
+    $('#loadDataBtn').click(function() {
+        loadData(true);
+        $(this).html('<i class="fas fa-spinner fa-spin me-1"></i> กำลังโหลด...');
+        setTimeout(() => {
+            $(this).html('<i class="fas fa-sync-alt me-1"></i> โหลดข้อมูลใหม่');
+        }, 2000);
+    });
+    
     // ปุ่มล้างค้นหา
     $('#clearSearchBtn').click(clearSearch);
     
-    // ปุ่มดูประวัติ
+    // ปุ่มทดสอบการเชื่อมต่อ
+    $('#testConnectionBtn').click(testConnection);
+    
+    // ปุ่มดูข้อมูลดิบ
+    $('#viewRawDataBtn').click(viewRawData);
+    
+    // ปุ่มดูประวัติการค้นหา
     $('#viewHistoryBtn').click(showSearchHistory);
     
-    // ค้นหาเมื่อกด Enter
-    $('#searchInput').keypress(function(e) {
-        if (e.which === 13) {
-            searchIntech();
-        }
-    });
-    
-    // ค้นหาทั่วไปเมื่อกด Enter
-    $('#generalSearchInput').keypress(function(e) {
-        if (e.which === 13) {
-            searchGeneral();
-        }
-    });
+    // ปุ่มดาวน์โหลด CSV
+    $('#exportDataBtn').click(exportData);
 }
 
-// โหลดข้อมูล
-function loadData(forceRefresh = false) {
+// โหลดข้อมูลเริ่มต้น
+function loadInitialData() {
     showLoading(true);
-    $('#status').html('<div class="alert alert-info">กำลังโหลดข้อมูล...</div>');
     
-    // ลองวิธีแรก
-    tryMethod(0, forceRefresh);
-}
-
-function tryMethod(index, forceRefresh) {
-    if (index >= CONFIG.URL_METHODS.length) {
-        showError('ไม่สามารถเชื่อมต่อกับ Google Sheet ได้');
+    // ตรวจสอบแคชก่อน
+    const cachedData = getCachedData();
+    if (cachedData) {
+        allData = cachedData;
+        displayData(allData);
+        updateStatistics();
+        updateDataTitle('ข้อมูลทั้งหมด');
+        showMessage('โหลดข้อมูลจากแคชสำเร็จ', 'success');
         showLoading(false);
         return;
     }
     
+    // ถ้าไม่มีแคช ให้โหลดใหม่
+    loadData();
+}
+
+// โหลดข้อมูลจาก Google Sheet
+function loadData(forceRefresh = false) {
+    console.log('📥 กำลังโหลดข้อมูลจาก Google Sheet...');
+    
+    if (forceRefresh) {
+        // ล้างแคช
+        clearCache();
+    }
+    
+    showLoading(true);
+    showMessage('กำลังเชื่อมต่อกับ Google Sheet...', 'info');
+    
+    // ลองโหลดด้วยวิธีปัจจุบัน
+    tryLoadMethod(currentMethodIndex);
+}
+
+function tryLoadMethod(index) {
+    if (index >= CONFIG.URL_METHODS.length) {
+        showError('ไม่สามารถเชื่อมต่อกับ Google Sheet ได้');
+        showLoading(false);
+        currentMethodIndex = 0; // รีเซ็ตกลับไปใช้วิธีแรก
+        return;
+    }
+    
     const method = CONFIG.URL_METHODS[index];
-    console.log(`🔄 ลองวิธี: ${method.name}`);
+    console.log(`🔄 ลองโหลดด้วยวิธี: ${method.name}`);
     
     if (method.type === 'json') {
-        // ใช้ opensheet (JSON)
+        // ใช้ JSON (opensheet)
         $.ajax({
             url: method.url,
             method: 'GET',
             dataType: 'json',
+            timeout: 15000,
             success: function(data) {
                 handleDataSuccess(data, method.name);
             },
-            error: function() {
-                console.log(`❌ ${method.name} ล้มเหลว`);
-                tryMethod(index + 1, forceRefresh);
+            error: function(xhr, status, error) {
+                console.error(`❌ ${method.name} ล้มเหลว:`, error);
+                tryLoadMethod(index + 1);
             }
         });
     } else {
@@ -127,17 +156,18 @@ function tryMethod(index, forceRefresh) {
             download: true,
             header: true,
             skipEmptyLines: true,
+            encoding: 'UTF-8',
             complete: function(results) {
                 if (results.data && results.data.length > 0) {
                     handleDataSuccess(results.data, method.name);
                 } else {
                     console.log(`❌ ${method.name} ไม่มีข้อมูล`);
-                    tryMethod(index + 1, forceRefresh);
+                    tryLoadMethod(index + 1);
                 }
             },
-            error: function() {
-                console.log(`❌ ${method.name} ล้มเหลว`);
-                tryMethod(index + 1, forceRefresh);
+            error: function(error) {
+                console.error(`❌ ${method.name} ล้มเหลว:`, error);
+                tryLoadMethod(index + 1);
             }
         });
     }
@@ -148,32 +178,43 @@ function handleDataSuccess(data, methodName) {
     
     allData = data;
     currentSearchResults = null;
+    currentSearchTerm = '';
+    currentPage = 1;
+    
+    // แคชข้อมูล
+    cacheData(allData);
     
     // แสดงข้อมูล
     displayData(allData);
     
     // อัปเดตสถิติ
-    updateStats();
+    updateStatistics();
+    
+    // อัปเดตหัวข้อ
+    updateDataTitle('ข้อมูลทั้งหมด');
+    
+    // ตรวจสอบคอลัมน์ที่มี
+    checkAvailableColumns();
     
     // แสดงข้อความสำเร็จ
     showSuccess(`โหลดข้อมูลสำเร็จ ${data.length} รายการ (ใช้ ${methodName})`);
     
     showLoading(false);
     
-    // ตรวจสอบคอลัมน์ที่มี
-    checkAvailableColumns();
+    // บันทึก method ที่ใช้งานได้
+    currentMethodIndex = CONFIG.URL_METHODS.findIndex(m => m.name === methodName);
 }
 
 // ============================================
 // ฟังก์ชันค้นหาเลขแปลง IN-TECH
 // ============================================
 
-// ฟังก์ชันค้นหาเลขแปลง (เฉพาะ IN-TECH)
 function searchIntech() {
-    const searchValue = $('#searchInput').val().trim();
+    const searchValue = $('#searchIntechInput').val().trim();
     
     if (!searchValue) {
         showWarning('กรุณากรอกเลขแปลงที่ต้องการค้นหา');
+        $('#searchIntechInput').focus();
         return;
     }
     
@@ -182,79 +223,16 @@ function searchIntech() {
         return;
     }
     
-    console.log(`🔍 ค้นหาเลขแปลง: "${searchValue}"`);
+    console.log(`🔍 ค้นหาเลขแปลง IN-TECH: "${searchValue}"`);
     
     // ค้นหาในคอลัมน์ที่กำหนด
-    const results = searchInColumns(searchValue, CONFIG.SEARCH_COLUMNS);
-    
-    if (results.length === 0) {
-        showWarning(`ไม่พบเลขแปลง "${searchValue}"`);
-        return;
-    }
-    
-    // บันทึกประวัติการค้นหา
-    saveToSearchHistory({
-        type: 'เลขแปลง',
-        keyword: searchValue,
-        results: results.length,
-        timestamp: new Date().toISOString()
-    });
-    
-    // แสดงผลการค้นหา
-    displaySearchResults(results, searchValue);
-    
-    // แสดงข้อความสำเร็จ
-    showSuccess(`พบ ${results.length} รายการที่ตรงกับ "${searchValue}"`);
-}
-
-// ฟังก์ชันค้นหาทั่วไป
-function searchGeneral() {
-    const searchValue = $('#generalSearchInput').val().trim();
-    
-    if (!searchValue) {
-        showWarning('กรุณากรอกคำค้นหา');
-        return;
-    }
-    
-    if (allData.length === 0) {
-        showWarning('ยังไม่มีข้อมูล โปรดโหลดข้อมูลก่อน');
-        return;
-    }
-    
-    console.log(`🔍 ค้นหาทั่วไป: "${searchValue}"`);
-    
-    // ค้นหาในทุกคอลัมน์
-    const results = searchInAllColumns(searchValue);
-    
-    if (results.length === 0) {
-        showWarning(`ไม่พบ "${searchValue}"`);
-        return;
-    }
-    
-    // บันทึกประวัติการค้นหา
-    saveToSearchHistory({
-        type: 'ทั่วไป',
-        keyword: searchValue,
-        results: results.length,
-        timestamp: new Date().toISOString()
-    });
-    
-    // แสดงผลการค้นหา
-    displaySearchResults(results, searchValue);
-    
-    // แสดงข้อความสำเร็จ
-    showSuccess(`พบ ${results.length} รายการที่ตรงกับ "${searchValue}"`);
-}
-
-// ค้นหาในคอลัมน์ที่กำหนด
-function searchInColumns(searchValue, columns) {
-    const searchLower = searchValue.toLowerCase();
     const results = [];
+    const searchLower = searchValue.toLowerCase();
     
     allData.forEach((row, index) => {
         let found = false;
         
-        columns.forEach(column => {
+        CONFIG.INTECH_SEARCH_COLUMNS.forEach(column => {
             if (row[column]) {
                 const cellValue = String(row[column]).toLowerCase();
                 if (cellValue.includes(searchLower)) {
@@ -266,18 +244,62 @@ function searchInColumns(searchValue, columns) {
         if (found) {
             results.push({
                 ...row,
-                _rowIndex: index
+                _rowIndex: index,
+                _searchMatch: true
             });
         }
     });
     
-    return results;
+    if (results.length === 0) {
+        showWarning(`ไม่พบเลขแปลง "${searchValue}" ในระบบ`);
+        return;
+    }
+    
+    // บันทึกประวัติการค้นหา
+    saveToSearchHistory({
+        type: 'เลขแปลง IN-TECH',
+        keyword: searchValue,
+        results: results.length,
+        timestamp: new Date().toISOString(),
+        columns: CONFIG.INTECH_SEARCH_COLUMNS
+    });
+    
+    // เก็บผลการค้นหา
+    currentSearchResults = results;
+    currentSearchTerm = searchValue;
+    currentPage = 1;
+    
+    // แสดงผลการค้นหา
+    displaySearchResults(results, searchValue, 'intech');
+    
+    // แสดงข้อความสำเร็จ
+    showSuccess(`พบ ${results.length} รายการที่ตรงกับเลขแปลง "${searchValue}"`);
+    
+    // Scroll to results
+    $('html, body').animate({
+        scrollTop: $('#searchResults').offset().top - 100
+    }, 500);
 }
 
-// ค้นหาในทุกคอลัมน์
-function searchInAllColumns(searchValue) {
-    const searchLower = searchValue.toLowerCase();
+function searchGeneral() {
+    const searchValue = $('#searchGeneralInput').val().trim();
+    
+    if (!searchValue) {
+        showWarning('กรุณากรอกคำค้นหา');
+        $('#searchGeneralInput').focus();
+        return;
+    }
+    
+    if (allData.length === 0) {
+        showWarning('ยังไม่มีข้อมูล โปรดโหลดข้อมูลก่อน');
+        return;
+    }
+    
+    console.log(`🔍 ค้นหาทั่วไป: "${searchValue}"`);
+    
+    // ค้นหาในทุกคอลัมน์
     const results = [];
+    const searchLower = searchValue.toLowerCase();
     
     allData.forEach((row, index) => {
         let found = false;
@@ -294,63 +316,103 @@ function searchInAllColumns(searchValue) {
         if (found) {
             results.push({
                 ...row,
-                _rowIndex: index
+                _rowIndex: index,
+                _searchMatch: true
             });
         }
     });
     
-    return results;
-}
-
-// แสดงผลการค้นหา
-function displaySearchResults(results, searchTerm) {
+    if (results.length === 0) {
+        showWarning(`ไม่พบ "${searchValue}" ในระบบ`);
+        return;
+    }
+    
+    // บันทึกประวัติการค้นหา
+    saveToSearchHistory({
+        type: 'ค้นหาทั่วไป',
+        keyword: searchValue,
+        results: results.length,
+        timestamp: new Date().toISOString(),
+        columns: 'ทั้งหมด'
+    });
+    
+    // เก็บผลการค้นหา
     currentSearchResults = results;
+    currentSearchTerm = searchValue;
     currentPage = 1;
     
-    // สร้าง HTML สำหรับผลการค้นหา
+    // แสดงผลการค้นหา
+    displaySearchResults(results, searchValue, 'general');
+    
+    // แสดงข้อความสำเร็จ
+    showSuccess(`พบ ${results.length} รายการที่ตรงกับ "${searchValue}"`);
+    
+    // Scroll to results
+    $('html, body').animate({
+        scrollTop: $('#searchResults').offset().top - 100
+    }, 500);
+}
+
+function displaySearchResults(results, searchTerm, searchType) {
+    const searchTypeText = searchType === 'intech' ? 'เลขแปลง IN-TECH' : 'ทั่วไป';
+    
     let html = `
-        <div class="card mb-3 border-primary">
+        <div class="card border-primary mb-3 fade-in">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-search me-2"></i>
-                    ผลการค้นหา: "${searchTerm}"
+                    ผลการค้นหา${searchType === 'intech' ? 'เลขแปลง' : ''}: "${searchTerm}"
                     <span class="badge bg-light text-primary ms-2">${results.length} รายการ</span>
                 </h5>
             </div>
             <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ค้นหาประเภท: <strong>${searchTypeText}</strong> | 
+                    พบทั้งหมด <strong>${results.length}</strong> รายการ
+                </div>
     `;
     
-    if (results.length > 0) {
-        // แสดงข้อมูลในตาราง
-        html += createResultsTable(results);
-    }
+    // แสดงข้อมูลในตาราง
+    html += createResultsTable(results, searchTerm, searchType);
     
     html += `
             </div>
             <div class="card-footer">
-                <button class="btn btn-sm btn-outline-primary" onclick="exportSearchResults()">
-                    <i class="fas fa-download me-1"></i> ดาวน์โหลดผลการค้นหา
-                </button>
-                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="clearSearch()">
-                    <i class="fas fa-times me-1"></i> ล้างการค้นหา
-                </button>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-sm btn-primary" onclick="exportSearchResults()">
+                        <i class="fas fa-download me-1"></i> ดาวน์โหลดผลการค้นหา
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="printSearchResults()">
+                        <i class="fas fa-print me-1"></i> พิมพ์ผลการค้นหา
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearSearch()">
+                        <i class="fas fa-times me-1"></i> ล้างการค้นหา
+                    </button>
+                </div>
             </div>
         </div>
     `;
     
     $('#searchResults').html(html);
     
-    // แสดงข้อมูลในตารางหลักด้วย
+    // แสดงข้อมูลในตารางหลัก
     displayData(results);
+    
+    // อัปเดตหัวข้อ
+    updateDataTitle(`ผลการค้นหา: "${searchTerm}"`);
 }
 
-// สร้างตารางผลการค้นหา
-function createResultsTable(results) {
-    if (results.length === 0) return '';
+function createResultsTable(results, searchTerm, searchType) {
+    if (results.length === 0) return '<p class="text-center text-muted">ไม่พบข้อมูล</p>';
     
+    // ใช้ headers จากข้อมูล
     const headers = Object.keys(results[0]).filter(h => !h.startsWith('_'));
+    const importantColumns = ['เลขแปลงและยกั', 'ชื่อมโยงเกษตร', 'เขต', 'พันธุ์', 'วันที่รอ้ มปลอด'];
+    
     const startIdx = (currentPage - 1) * CONFIG.ITEMS_PER_PAGE;
     const endIdx = Math.min(startIdx + CONFIG.ITEMS_PER_PAGE, results.length);
+    const totalPages = Math.ceil(results.length / CONFIG.ITEMS_PER_PAGE);
     
     let html = `
         <div class="table-responsive">
@@ -360,8 +422,7 @@ function createResultsTable(results) {
                         <th width="50">#</th>
     `;
     
-    // แสดงเฉพาะคอลัมน์สำคัญบางคอลัมน์
-    const importantColumns = ['เลขแปลงและยกั', 'ชื่อมโยงเกษตร', 'เขต', 'พันธุ์', 'วันที่รอ้ มปลอด'];
+    // แสดงคอลัมน์สำคัญ
     importantColumns.forEach(col => {
         if (headers.includes(col)) {
             html += `<th>${col}</th>`;
@@ -377,12 +438,15 @@ function createResultsTable(results) {
         
         importantColumns.forEach(col => {
             if (headers.includes(col)) {
-                const value = row[col] || '';
-                // ไฮไลต์ข้อความที่ค้นหา
+                let value = row[col] || '';
                 let displayValue = String(value);
-                if (displayValue.toLowerCase().includes($('#searchInput').val().toLowerCase())) {
-                    displayValue = `<span class="bg-warning px-1 rounded">${displayValue}</span>`;
+                
+                // ไฮไลต์ข้อความที่ค้นหา
+                if (searchTerm && displayValue.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    displayValue = displayValue.replace(regex, '<span class="search-highlight">$1</span>');
                 }
+                
                 html += `<td>${displayValue}</td>`;
             }
         });
@@ -393,7 +457,6 @@ function createResultsTable(results) {
     html += `</tbody></table></div>`;
     
     // Pagination
-    const totalPages = Math.ceil(results.length / CONFIG.ITEMS_PER_PAGE);
     if (totalPages > 1) {
         html += createPagination(totalPages, 'search');
     }
@@ -401,16 +464,16 @@ function createResultsTable(results) {
     return html;
 }
 
-// แสดงข้อมูลทั้งหมดหรือผลการค้นหา
 function displayData(dataToShow = allData) {
     if (!dataToShow || dataToShow.length === 0) {
         $('#dataTable').html(`
-            <div class="alert alert-light text-center">
+            <div class="text-center py-5">
                 <i class="fas fa-database fa-3x text-muted mb-3"></i>
-                <h5>ยังไม่มีข้อมูล</h5>
-                <p>กดปุ่ม "โหลดข้อมูล" เพื่อเริ่มต้น</p>
+                <h5>ไม่พบข้อมูล</h5>
+                <p class="text-muted">ไม่สามารถโหลดข้อมูลได้</p>
             </div>
         `);
+        $('#dataCount').text('0');
         return;
     }
     
@@ -436,12 +499,25 @@ function displayData(dataToShow = allData) {
     
     for (let i = startIdx; i < endIdx; i++) {
         const row = dataToShow[i];
-        html += `<tr onclick="showRowDetail(${row._rowIndex || i})" style="cursor: pointer;">`;
+        const originalIndex = row._rowIndex !== undefined ? row._rowIndex : i;
+        
+        html += `<tr onclick="showRowDetail(${originalIndex})" style="cursor: pointer;">`;
         html += `<td class="text-center fw-bold">${i + 1}</td>`;
         
         headers.forEach(header => {
-            const value = row[header] || '';
-            html += `<td>${formatValue(value)}</td>`;
+            let value = row[header] || '';
+            let displayValue = formatValue(value);
+            
+            // ไฮไลต์ถ้าเป็นผลการค้นหา
+            if (currentSearchTerm && currentSearchResults && 
+                String(value).toLowerCase().includes(currentSearchTerm.toLowerCase())) {
+                displayValue = displayValue.replace(
+                    new RegExp(`(${currentSearchTerm})`, 'gi'),
+                    '<span class="highlight">$1</span>'
+                );
+            }
+            
+            html += `<td>${displayValue}</td>`;
         });
         
         html += `</tr>`;
@@ -451,23 +527,20 @@ function displayData(dataToShow = allData) {
     
     // Pagination
     if (totalPages > 1) {
-        html += createPagination(totalPages);
+        html += createPagination(totalPages, 'data');
     }
     
     $('#dataTable').html(html);
     $('#dataInfo').html(`
-        <small class="text-muted">
-            แสดง ${startIdx + 1}-${endIdx} จาก ${dataToShow.length} รายการ | 
-            หน้า ${currentPage}/${totalPages}
-        </small>
+        แสดง <strong>${startIdx + 1}-${endIdx}</strong> จากทั้งหมด <strong>${dataToShow.length}</strong> รายการ
     `);
+    $('#dataCount').text(dataToShow.length.toLocaleString());
 }
 
-// สร้าง Pagination
-function createPagination(totalPages, type = 'normal') {
+function createPagination(totalPages, type) {
     let html = `
-        <nav aria-label="Page navigation">
-            <ul class="pagination pagination-sm justify-content-center">
+        <nav aria-label="Page navigation" class="mt-3">
+            <ul class="pagination justify-content-center">
                 <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${currentPage - 1}, '${type}')">
                         <i class="fas fa-chevron-left"></i>
@@ -475,16 +548,20 @@ function createPagination(totalPages, type = 'normal') {
                 </li>
     `;
     
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
-            html += `
-                <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${i}, '${type}')">${i}</a>
-                </li>
-            `;
-        } else if (Math.abs(i - currentPage) === 3) {
-            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        }
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage + 1 < maxVisible) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i}, '${type}')">${i}</a>
+            </li>
+        `;
     }
     
     html += `
@@ -500,8 +577,7 @@ function createPagination(totalPages, type = 'normal') {
     return html;
 }
 
-// เปลี่ยนหน้า
-function changePage(page, type = 'normal') {
+function changePage(page, type) {
     if (page < 1 || page > Math.ceil((currentSearchResults || allData).length / CONFIG.ITEMS_PER_PAGE)) {
         return;
     }
@@ -509,17 +585,111 @@ function changePage(page, type = 'normal') {
     currentPage = page;
     
     if (type === 'search' && currentSearchResults) {
-        displaySearchResults(currentSearchResults, $('#searchInput').val());
+        displaySearchResults(currentSearchResults, currentSearchTerm, 'intech');
     } else {
         displayData(currentSearchResults || allData);
     }
     
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('html, body').animate({ scrollTop: $('#dataTable').offset().top - 100 }, 300);
 }
 
-// แสดงรายละเอียดแถว
+// ============================================
+// ฟังก์ชัน Utility
+// ============================================
+
+function clearSearch() {
+    currentSearchResults = null;
+    currentSearchTerm = '';
+    currentPage = 1;
+    
+    $('#searchIntechInput').val('');
+    $('#searchGeneralInput').val('');
+    $('#searchResults').html('');
+    
+    displayData(allData);
+    updateDataTitle('ข้อมูลทั้งหมด');
+    updateStatistics();
+    
+    showInfo('ล้างการค้นหาเรียบร้อยแล้ว');
+    $('#searchIntechInput').focus();
+}
+
+function updateDataTitle(title) {
+    $('#dataTitle').text(title);
+}
+
+function updateStatistics() {
+    const total = allData.length;
+    const showing = currentSearchResults ? currentSearchResults.length : total;
+    const columns = allData.length > 0 ? Object.keys(allData[0]).length : 0;
+    
+    const statsHtml = `
+        <div class="col-md-4">
+            <div class="stats-card stats-primary">
+                <div class="stats-icon text-primary">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stats-value">${total.toLocaleString()}</div>
+                <div class="stats-label">ข้อมูลทั้งหมด</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card stats-success">
+                <div class="stats-icon text-success">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stats-value">${showing.toLocaleString()}</div>
+                <div class="stats-label">กำลังแสดง</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card stats-info">
+                <div class="stats-icon text-info">
+                    <i class="fas fa-columns"></i>
+                </div>
+                <div class="stats-value">${columns}</div>
+                <div class="stats-label">จำนวนคอลัมน์</div>
+            </div>
+        </div>
+    `;
+    
+    $('#stats').html(statsHtml);
+}
+
+function checkAvailableColumns() {
+    if (allData.length === 0) return;
+    
+    const headers = Object.keys(allData[0]);
+    const intechColumns = CONFIG.INTECH_SEARCH_COLUMNS.filter(col => headers.includes(col));
+    
+    let html = `
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-columns me-2"></i>คอลัมน์ที่มีในข้อมูล
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>คอลัมน์สำหรับค้นหาเลขแปลง:</strong></p>
+                <div class="mb-3">
+                    ${intechColumns.map(col => 
+                        `<span class="badge bg-primary me-1 mb-1">${col}</span>`
+                    ).join('')}
+                </div>
+                <p class="mb-2"><strong>คอลัมน์ทั้งหมด (${headers.length} คอลัมน์):</strong></p>
+                <div>
+                    ${headers.map(col => 
+                        `<span class="badge bg-secondary me-1 mb-1">${col}</span>`
+                    ).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#availableColumns').html(html);
+}
+
 function showRowDetail(rowIndex) {
     const row = allData[rowIndex];
+    const headers = Object.keys(row).filter(h => !h.startsWith('_'));
     
     let detailHtml = `
         <div class="modal fade" id="detailModal" tabindex="-1">
@@ -528,7 +698,7 @@ function showRowDetail(rowIndex) {
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title">
                             <i class="fas fa-info-circle me-2"></i>
-                            รายละเอียดข้อมูล
+                            รายละเอียดข้อมูล (แถวที่ ${rowIndex + 1})
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
@@ -536,23 +706,30 @@ function showRowDetail(rowIndex) {
                         <div class="row">
     `;
     
-    Object.keys(row).forEach((key, index) => {
-        if (!key.startsWith('_')) {
-            const value = row[key] || '-';
-            detailHtml += `
-                <div class="col-md-6 mb-3">
-                    <label class="form-label text-muted small">${formatHeader(key)}</label>
-                    <div class="form-control bg-light">${formatValue(value)}</div>
+    headers.forEach((key, index) => {
+        const value = row[key] || '-';
+        const isIntechColumn = CONFIG.INTECH_SEARCH_COLUMNS.includes(key);
+        
+        detailHtml += `
+            <div class="col-md-6 mb-3">
+                <label class="form-label ${isIntechColumn ? 'fw-bold text-primary' : 'text-muted'} small">
+                    ${formatHeader(key)}
+                    ${isIntechColumn ? '<i class="fas fa-search ms-1 small"></i>' : ''}
+                </label>
+                <div class="form-control bg-light" style="min-height: 38px;">
+                    ${formatValue(value)}
                 </div>
-            `;
-        }
+            </div>
+        `;
     });
     
     detailHtml += `
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> ปิด
+                        </button>
                         <button type="button" class="btn btn-primary" onclick="copyRowData(${rowIndex})">
                             <i class="fas fa-copy me-1"></i> คัดลอกข้อมูล
                         </button>
@@ -562,20 +739,15 @@ function showRowDetail(rowIndex) {
         </div>
     `;
     
-    // เพิ่ม modal ไปยัง body
     $('body').append(detailHtml);
-    
-    // แสดง modal
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     modal.show();
     
-    // ลบ modal เมื่อปิด
     $('#detailModal').on('hidden.bs.modal', function() {
         $(this).remove();
     });
 }
 
-// คัดลอกข้อมูลแถว
 function copyRowData(rowIndex) {
     const row = allData[rowIndex];
     let text = '';
@@ -588,35 +760,103 @@ function copyRowData(rowIndex) {
     
     navigator.clipboard.writeText(text).then(() => {
         showSuccess('คัดลอกข้อมูลเรียบร้อยแล้ว');
+        bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+    }).catch(err => {
+        showError('ไม่สามารถคัดลอกได้: ' + err.message);
     });
 }
 
-// ล้างการค้นหา
-function clearSearch() {
-    currentSearchResults = null;
-    currentPage = 1;
-    $('#searchInput').val('');
-    $('#generalSearchInput').val('');
-    $('#searchResults').html('');
-    displayData(allData);
-    showInfo('ล้างการค้นหาเรียบร้อยแล้ว');
+function testConnection() {
+    showMessage('กำลังทดสอบการเชื่อมต่อ...', 'info');
+    
+    const testUrl = CONFIG.URL_METHODS[0].url;
+    console.log('🧪 ทดสอบการเชื่อมต่อกับ:', testUrl);
+    
+    fetch(testUrl)
+        .then(response => {
+            if (response.ok) {
+                showSuccess('การเชื่อมต่อกับ Google Sheet ทำงานปกติ');
+            } else {
+                showWarning('การเชื่อมต่อมีปัญหา (Status: ' + response.status + ')');
+            }
+        })
+        .catch(error => {
+            showError('ไม่สามารถเชื่อมต่อได้: ' + error.message);
+        });
 }
 
-// ส่งออกผลการค้นหา
-function exportSearchResults() {
-    if (!currentSearchResults || currentSearchResults.length === 0) {
-        showWarning('ไม่มีผลการค้นหาที่จะส่งออก');
+function viewRawData() {
+    if (allData.length === 0) {
+        showWarning('ยังไม่มีข้อมูล');
         return;
     }
     
-    const headers = Object.keys(currentSearchResults[0]).filter(h => !h.startsWith('_'));
-    const csvRows = [];
+    const firstRow = allData[0];
+    const headers = Object.keys(firstRow).filter(h => !h.startsWith('_'));
     
-    // Header
+    let rawHtml = `
+        <div class="modal fade" id="rawDataModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-code me-2"></i>
+                            ข้อมูลดิบ (5 แถวแรก)
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <pre style="max-height: 500px; overflow: auto; background: #f8f9fa; padding: 15px; border-radius: 5px;">
+    `;
+    
+    // แสดง 5 แถวแรก
+    for (let i = 0; i < Math.min(5, allData.length); i++) {
+        const row = allData[i];
+        rawHtml += `\n=== แถวที่ ${i + 1} ===\n`;
+        
+        headers.forEach(header => {
+            rawHtml += `${header}: ${JSON.stringify(row[header] || '')}\n`;
+        });
+    }
+    
+    rawHtml += `
+                        </pre>
+                        <div class="mt-3">
+                            <p><strong>สรุป:</strong></p>
+                            <ul>
+                                <li>จำนวนแถวทั้งหมด: ${allData.length}</li>
+                                <li>จำนวนคอลัมน์: ${headers.length}</li>
+                                <li>คอลัมน์แรก: ${headers[0] || 'ไม่มี'}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('body').append(rawHtml);
+    const modal = new bootstrap.Modal(document.getElementById('rawDataModal'));
+    modal.show();
+    
+    $('#rawDataModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
+function exportData() {
+    if (allData.length === 0) {
+        showWarning('ไม่มีข้อมูลที่จะส่งออก');
+        return;
+    }
+    
+    const dataToExport = currentSearchResults || allData;
+    const headers = Object.keys(dataToExport[0]).filter(h => !h.startsWith('_'));
+    
+    const csvRows = [];
     csvRows.push(headers.join(','));
     
-    // Data
-    currentSearchResults.forEach(row => {
+    dataToExport.forEach(row => {
         const values = headers.map(header => {
             const val = row[header] || '';
             return `"${String(val).replace(/"/g, '""')}"`;
@@ -629,41 +869,98 @@ function exportSearchResults() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = currentSearchResults ? 
+        `IN-TECH_Search_${currentSearchTerm}_${timestamp}.csv` : 
+        `IN-TECH_Data_${timestamp}.csv`;
+    
     a.href = url;
-    a.download = `IN-TECH_Search_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     
-    showSuccess('ดาวน์โหลดผลการค้นหาเรียบร้อยแล้ว');
+    showSuccess('ดาวน์โหลดข้อมูลเรียบร้อยแล้ว: ' + filename);
+}
+
+function exportSearchResults() {
+    exportData();
+}
+
+function printSearchResults() {
+    window.print();
+}
+
+// ============================================
+// ฟังก์ชันจัดการแคช
+// ============================================
+
+function cacheData(data) {
+    try {
+        const cacheData = {
+            data: data,
+            timestamp: Date.now(),
+            method: CONFIG.URL_METHODS[currentMethodIndex].name
+        };
+        localStorage.setItem('intechDataCache', JSON.stringify(cacheData));
+        console.log('💾 แคชข้อมูลเรียบร้อยแล้ว');
+    } catch (e) {
+        console.warn('⚠️ ไม่สามารถแคชข้อมูลได้:', e);
+    }
+}
+
+function getCachedData() {
+    try {
+        const cached = localStorage.getItem('intechDataCache');
+        if (!cached) return null;
+        
+        const cacheData = JSON.parse(cached);
+        const age = Date.now() - cacheData.timestamp;
+        
+        if (age < CONFIG.CACHE_DURATION) {
+            console.log('📂 โหลดข้อมูลจากแคช (อายุ: ' + Math.round(age/1000) + ' วินาที)');
+            return cacheData.data;
+        } else {
+            console.log('🗑️ แคชหมดอายุแล้ว');
+            return null;
+        }
+    } catch (e) {
+        console.warn('⚠️ ปัญหาในการอ่านแคช:', e);
+        return null;
+    }
+}
+
+function clearCache() {
+    localStorage.removeItem('intechDataCache');
+    console.log('🧹 ล้างแคชเรียบร้อยแล้ว');
 }
 
 // ============================================
 // ฟังก์ชันจัดการประวัติการค้นหา
 // ============================================
 
-// บันทึกประวัติการค้นหา
 function saveToSearchHistory(searchData) {
     searchHistory.unshift(searchData);
     
-    // เก็บเฉพาะ 20 รายการล่าสุด
-    if (searchHistory.length > 20) {
-        searchHistory = searchHistory.slice(0, 20);
+    // เก็บเฉพาะ 10 รายการล่าสุด
+    if (searchHistory.length > 10) {
+        searchHistory = searchHistory.slice(0, 10);
     }
     
-    // บันทึกลง localStorage
     localStorage.setItem('intechSearchHistory', JSON.stringify(searchHistory));
 }
 
-// โหลดประวัติการค้นหา
 function loadSearchHistory() {
-    const saved = localStorage.getItem('intechSearchHistory');
-    if (saved) {
-        searchHistory = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem('intechSearchHistory');
+        if (saved) {
+            searchHistory = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.warn('⚠️ ปัญหาในการโหลดประวัติ:', e);
     }
 }
 
-// แสดงประวัติการค้นหา
 function showSearchHistory() {
     if (searchHistory.length === 0) {
         showInfo('ยังไม่มีประวัติการค้นหา');
@@ -691,15 +988,15 @@ function showSearchHistory() {
             <div class="list-group-item">
                 <div class="d-flex w-100 justify-content-between">
                     <h6 class="mb-1">
-                        <span class="badge bg-${item.type === 'เลขแปลง' ? 'primary' : 'secondary'} me-2">
+                        <span class="badge ${item.type.includes('IN-TECH') ? 'bg-primary' : 'bg-secondary'} me-2">
                             ${item.type}
                         </span>
                         "${item.keyword}"
                     </h6>
                     <small>${time}</small>
                 </div>
-                <p class="mb-1">พบ ${item.results} รายการ</p>
-                <button class="btn btn-sm btn-outline-primary mt-2" onclick="reSearch('${item.keyword}')">
+                <p class="mb-1 small">พบ ${item.results} รายการ</p>
+                <button class="btn btn-sm btn-outline-primary mt-1" onclick="reSearchFromHistory('${item.keyword}')">
                     <i class="fas fa-redo me-1"></i> ค้นหาอีกครั้ง
                 </button>
             </div>
@@ -729,95 +1026,69 @@ function showSearchHistory() {
     });
 }
 
-// ค้นหาอีกครั้งจากประวัติ
-function reSearch(keyword) {
-    $('#searchInput').val(keyword);
+function reSearchFromHistory(keyword) {
+    $('#searchIntechInput').val(keyword);
     searchIntech();
-    
-    // ปิด modal
     bootstrap.Modal.getInstance(document.getElementById('historyModal')).hide();
 }
 
-// ล้างประวัติการค้นหา
 function clearSearchHistory() {
     searchHistory = [];
     localStorage.removeItem('intechSearchHistory');
     showSuccess('ล้างประวัติการค้นหาเรียบร้อยแล้ว');
-    
-    // ปิด modal
     bootstrap.Modal.getInstance(document.getElementById('historyModal')).hide();
 }
 
 // ============================================
-// ฟังก์ชัน Utility
+// Helper Functions
 // ============================================
 
-// ตรวจสอบคอลัมน์ที่มี
-function checkAvailableColumns() {
-    if (allData.length === 0) return;
-    
-    const headers = Object.keys(allData[0]);
-    console.log('📋 คอลัมน์ที่มี:', headers);
-    
-    // แสดงคอลัมน์ที่มี
-    $('#availableColumns').html(`
-        <div class="alert alert-light">
-            <h6><i class="fas fa-columns"></i> คอลัมน์ที่มีในข้อมูล:</h6>
-            <div class="mt-2">${headers.map(h => `<span class="badge bg-secondary me-1 mb-1">${h}</span>`).join('')}</div>
-        </div>
-    `);
-}
-
-// แสดง Loading
 function showLoading(show) {
     if (show) {
         $('#loading').show();
-        $('#dataTable').hide();
+        $('#dataSection').hide();
+        $('#statsContainer').hide();
+        $('#availableColumns').hide();
     } else {
         $('#loading').hide();
-        $('#dataTable').show();
+        $('#dataSection').show();
+        $('#statsContainer').show();
+        $('#availableColumns').show();
     }
 }
 
-// อัปเดตสถิติ
-function updateStats() {
-    const total = allData.length;
-    const showing = currentSearchResults ? currentSearchResults.length : total;
+function showMessage(text, type) {
+    const icons = {
+        success: 'check-circle',
+        error: 'exclamation-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle'
+    };
     
-    $('#stats').html(`
-        <div class="row text-center">
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h6 class="text-muted">ข้อมูลทั้งหมด</h6>
-                        <h3 class="text-primary">${total}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h6 class="text-muted">กำลังแสดง</h6>
-                        <h3 class="text-success">${showing}</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h6 class="text-muted">คอลัมน์</h6>
-                        <h3 class="text-info">${allData.length > 0 ? Object.keys(allData[0]).length : 0}</h3>
-                    </div>
-                </div>
-            </div>
+    const html = `
+        <div class="alert alert-${type} alert-dismissible fade show">
+            <i class="fas fa-${icons[type]} me-2"></i>
+            ${text}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    `);
+    `;
+    
+    $('#messages').html(html);
+    
+    // อัตโนมัติปิดหลังจาก 5 วินาที
+    setTimeout(() => {
+        $('.alert').alert('close');
+    }, 5000);
 }
 
-// Helper functions
+function showSuccess(text) { showMessage(text, 'success'); }
+function showError(text) { showMessage(text, 'danger'); }
+function showWarning(text) { showMessage(text, 'warning'); }
+function showInfo(text) { showMessage(text, 'info'); }
+
 function formatHeader(header) {
-    if (header.length > 15) {
-        return header.substring(0, 12) + '...';
+    if (header.length > 20) {
+        return header.substring(0, 17) + '...';
     }
     return header;
 }
@@ -835,31 +1106,17 @@ function formatValue(value) {
         return num.toLocaleString('th-TH');
     }
     
-    return str;
+    // ถ้าเป็นวันที่ไทย (รูปแบบ dd/mm/yyyy)
+    const thaiDateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+    if (thaiDateRegex.test(str)) {
+        return str;
+    }
+    
+    // ข้อความธรรมดา
+    return str.replace(/\n/g, '<br>');
 }
 
-// ฟังก์ชันแสดงข้อความ
-function showMessage(text, type) {
-    const icon = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    }[type];
-    
-    const html = `
-        <div class="alert alert-${type} alert-dismissible fade show">
-            <i class="fas fa-${icon} me-2"></i>
-            ${text}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    `;
-    
-    $('#messages').html(html);
-    setTimeout(() => $('.alert').alert('close'), 5000);
-}
-
-function showSuccess(text) { showMessage(text, 'success'); }
-function showError(text) { showMessage(text, 'danger'); }
-function showWarning(text) { showMessage(text, 'warning'); }
-function showInfo(text) { showMessage(text, 'info'); }
+// Initialize when page loads
+console.log('✅ ระบบค้นหาเลขแปลง IN-TECH พร้อมใช้งาน');
+console.log('📊 โครงการ:', CONFIG.PROJECT_NAME);
+console.log('🔗 Sheet ID:', CONFIG.SHEET_ID);
